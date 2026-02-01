@@ -247,9 +247,11 @@ const TYPE_NAMES = { nord: "노르드", egypt: "이집트", olympus: "올림포�
 
 // 002 버전의 유물 데이터베이스 (그대로 유지)
 const ARTIFACT_DB = [
+    // Olympus (Bronze)
     {name:"귀게스의 반지", type:"olympus", score:4, grade:"Bronze", cost:{adamantite:3, starFragment:3}},
     {name:"헤르메스의 신발", type:"olympus", score:5, grade:"Bronze", cost:{dragonBone:3, mithril:4}},
     {name:"크리셀라카토스", type:"olympus", score:6, grade:"Bronze", cost:{mithril:3, starFragment:5}},
+    // Olympus (Silver)
     {name:"퀴네에", type:"olympus", score:10, grade:"Silver", cost:{dragonBone:2, mithril:4, starFragment:5}},
     {name:"케스토스 히마스", type:"olympus", score:12, grade:"Silver", cost:{adamantite:4, starFragment:9}},
     {name:"트라아이나", type:"olympus", score:12, grade:"Silver", cost:{adamantite:2, dragonBone:7, mithril:3}},
@@ -257,10 +259,14 @@ const ARTIFACT_DB = [
     {name:"아이기스", type:"olympus", score:14, grade:"Silver", cost:{adamantite:7, dragonBone:8}},
     {name:"큐피드의 화살", type:"olympus", score:16, grade:"Silver", cost:{adamantite:5, dragonBone:3, mithril:7, starFragment:2}},
     {name:"아다만트", type:"olympus", score:16, grade:"Silver", cost:{adamantite:12, dragonBone:2, starFragment:3}},
+    // Olympus (Gold)
     {name:"아스트라페", type:"olympus", score:24, grade:"Gold", cost:{adamantite:3, dragonBone:5, mithril:5, starFragment:12}},
+
+    // Egypt (Bronze)
     {name:"마아트의 깃털", type:"egypt", score:4, grade:"Bronze", cost:{dragonBone:3, mithril:3}},
     {name:"오시리스의 왕홀", type:"egypt", score:5, grade:"Bronze", cost:{adamantite:2, mithril:6}},
     {name:"아누비스의 저울", type:"egypt", score:6, grade:"Bronze", cost:{adamantite:2, dragonBone:6}},
+    // Egypt (Silver)
     {name:"세트의 전쟁 도끼", type:"egypt", score:10, grade:"Silver", cost:{adamantite:6, dragonBone:2, mithril:2}},
     {name:"세크메트의 역병", type:"egypt", score:12, grade:"Silver", cost:{adamantite:3, dragonBone:6, mithril:3}},
     {name:"토트의 서", type:"egypt", score:12, grade:"Silver", cost:{dragonBone:2, mithril:6, starFragment:5}},
@@ -268,10 +274,14 @@ const ARTIFACT_DB = [
     {name:"호루스의 눈", type:"egypt", score:14, grade:"Silver", cost:{adamantite:4, mithril:6, starFragment:5}},
     {name:"크눔의 물레", type:"egypt", score:16, grade:"Silver", cost:{adamantite:4, dragonBone:6, mithril:2, starFragment:5}},
     {name:"만야르트", type:"egypt", score:16, grade:"Silver", cost:{dragonBone:5, mithril:4, starFragment:8}},
+    // Egypt (Gold)
     {name:"누의 항아리", type:"egypt", score:24, grade:"Gold", cost:{adamantite:3, dragonBone:14, mithril:2, starFragment:6}},
+
+    // Nord (Bronze)
     {name:"드라우프니르", type:"nord", score:4, grade:"Bronze", cost:{dragonBone:4, mithril:2}},
     {name:"브리싱가멘", type:"nord", score:5, grade:"Bronze", cost:{mithril:3, starFragment:4}},
     {name:"메긴요르드", type:"nord", score:6, grade:"Bronze", cost:{adamantite:9}},
+    // Nord (Silver)
     {name:"그람", type:"nord", score:10, grade:"Silver", cost:{dragonBone:3, mithril:5, starFragment:3}},
     {name:"스발린", type:"nord", score:12, grade:"Silver", cost:{adamantite:5, mithril:8}},
     {name:"겔라르 호른", type:"nord", score:12, grade:"Silver", cost:{dragonBone:5, mithril:5, starFragment:3}},
@@ -279,10 +289,14 @@ const ARTIFACT_DB = [
     {name:"궁니르", type:"nord", score:14, grade:"Silver", cost:{adamantite:6, dragonBone:2, starFragment:6}},
     {name:"글레이프니르", type:"nord", score:16, grade:"Silver", cost:{adamantite:3, dragonBone:5, starFragment:8}},
     {name:"묠니르", type:"nord", score:16, grade:"Silver", cost:{adamantite:6, mithril:7, starFragment:4}},
+    // Nord (Gold)
     {name:"레바테인", type:"nord", score:24, grade:"Gold", cost:{adamantite:11, dragonBone:4, mithril:5, starFragment:6}},
+
+    // Celt (Bronze)
     {name:"오한", type:"celt", score:4, grade:"Bronze", cost:{adamantite:2, starFragment:4}},
     {name:"누아다의 은팔", type:"celt", score:5, grade:"Bronze", cost:{dragonBone:4, starFragment:2}},
     {name:"다그다의 솥", type:"celt", score:6, grade:"Bronze", cost:{dragonBone:4, starFragment:4}},
+    // Celt (Silver)
     {name:"마나난의 황금 갑옷", type:"celt", score:10, grade:"Silver", cost:{adamantite:7, starFragment:4}},
     {name:"칼라드볼그", type:"celt", score:12, grade:"Silver", cost:{adamantite:5, mithril:5, starFragment:2}},
     {name:"페르디아의 뿔가죽", type:"celt", score:12, grade:"Silver", cost:{adamantite:5, dragonBone:6, mithril:2}},
@@ -290,24 +304,25 @@ const ARTIFACT_DB = [
     {name:"게 다러그", type:"celt", score:14, grade:"Silver", cost:{dragonBone:8, starFragment:7}},
     {name:"프라가라흐", type:"celt", score:16, grade:"Silver", cost:{adamantite:4, dragonBone:4, mithril:8}},
     {name:"게 비어", type:"celt", score:16, grade:"Silver", cost:{adamantite:4, dragonBone:6, mithril:4, starFragment:2}},
+    // Celt (Gold)
     {name:"브류나크", type:"celt", score:24, grade:"Gold", cost:{dragonBone:5, mithril:17, starFragment:3}}
 ];
 
-// 002 버전의 로키 DB (32장 풀 세트)
+// [Update] 로키 DB (Source: 로키_데이터 테이블 v1.9.xlsx)
 const LOKI_DB = [
-    {id:1,name:"구부러진 시곗바늘",desc:"사용 시 시간 -1H",type:"active_time", count:4},
-    {id:2,name:"망각의 주판",desc:"교환",type:"active_swap", count:1},
+    {id:1,name:"구부러진 시곗바늘",desc:"시간 -1H",type:"active_time", count:4},
+    {id:2,name:"망각의 주판",desc:"유물 교환(보관<->시장)",type:"active_swap", count:1},
     {id:3,name:"불완전한 축복",desc:"노르드 / 켈트",type:"bless_split",tags:['nord','celt'], count:1},
     {id:4,name:"불완전한 축복",desc:"노르드 / 이집트",type:"bless_split",tags:['nord','egypt'], count:1},
     {id:5,name:"불완전한 축복",desc:"노르드 / 올림포스",type:"bless_split",tags:['nord','olympus'], count:1},
     {id:6,name:"불완전한 축복",desc:"올림포스 / 이집트",type:"bless_split",tags:['olympus','egypt'], count:1},
     {id:7,name:"불완전한 축복",desc:"이집트 / 켈트",type:"bless_split",tags:['egypt','celt'], count:1},
     {id:8,name:"불완전한 축복",desc:"올림포스 / 켈트",type:"bless_split",tags:['olympus','celt'], count:1},
-    {id:9,name:"혼돈의 채석망치",desc:"시장 교체",type:"active_reset", count:1},
-    {id:10,name:"부서진 회중시계",desc:"무료 제작",type:"passive_free", count:1},
-    {id:11,name:"계승자의 문장",desc:"+2점",type:"instant_score", count:4},
-    {id:12,name:"미래 일기",desc:"미래 엿보기",type:"active_peek", count:1},
-    {id:13,name:"검은 주사위",desc:"드로우",type:"active_draw", count:1},
+    {id:9,name:"혼돈의 채석망치",desc:"시장 자원 리셋",type:"active_reset", count:1},
+    {id:10,name:"부서진 회중시계",desc:"유물 제작 시간 0",type:"passive_free", count:1},
+    {id:11,name:"계승자의 문장",desc:"즉시 +2점",type:"instant_score", count:4},
+    {id:12,name:"미래 일기",desc:"덱 위 3장 확인, 1장 획득",type:"active_peek", count:1},
+    {id:13,name:"검은 주사위",desc:"손패 2장 버리고 2장 드로우",type:"active_draw", count:1},
     {id:14,name:"불안정 융합석",desc:"재료(OR)",type:"res_split",mode:"OR",options:[{type:'starFragment',val:4},{type:'dragonBone',val:4}], count:1},
     {id:15,name:"불안정 융합석",desc:"재료(OR)",type:"res_split",mode:"OR",options:[{type:'starFragment',val:4},{type:'mithril',val:4}], count:1},
     {id:16,name:"불안정 융합석",desc:"재료(OR)",type:"res_split",mode:"OR",options:[{type:'starFragment',val:4},{type:'adamantite',val:4}], count:1},
@@ -320,9 +335,8 @@ const LOKI_DB = [
     {id:23,name:"불안정 융합석",desc:"재료(AND)",type:"res_split",mode:"AND",options:[{type:'dragonBone',val:2},{type:'starFragment',val:2}], count:1},
     {id:24,name:"불안정 융합석",desc:"재료(AND)",type:"res_split",mode:"AND",options:[{type:'starFragment',val:2},{type:'mithril',val:2}], count:1},
     {id:25,name:"불안정 융합석",desc:"재료(AND)",type:"res_split",mode:"AND",options:[{type:'adamantite',val:2},{type:'starFragment',val:2}], count:1},
-    {id:26,name:"파괴된 성배",desc:"축복 교체",type:"active_reset_bless", count:1}
+    {id:26,name:"파괴된 성배",desc:"시장 축복 리셋",type:"active_reset_bless", count:1}
 ];
-
 class Card {
     constructor(cat, type, val = null, extra = null) {
         this.cat = cat;
@@ -398,18 +412,36 @@ class Player {
         this.aiTargetIdx = null;
         this.olympusDiscount = { type: null, amount: 0 };
         
-        // [수정됨] 통계 및 엑셀 분석용 데이터 추가
+        // [Data Mining] 데이터 분석용 필드 (기존 로직과 호환)
         this.dailyScore = [-1, -1, -1, -1, -1]; 
+        this.history = []; 
+        
+        // 1. 행동권 격차 추적 (총 턴 수)
+        this.totalTurns = 0; 
+        
+        // 2. 엔진 가동 타이밍 (3단계 완성 턴, 미달성 시 -1)
+        this.lvl3Turn = { olympus: -1, egypt: -1, nord: -1, celt: -1 };
+        
+        // 3. 로키 상세 사용 기록 (ID 배열)
+        this.usedLokiIds = []; 
+
         this.metrics = { 
             savedRes: 0, wastedCards: 0, celtSwaps: 0,
             resAcquired: 0, resConsumed: 0, lokiUsed: 0      
         };
         this.milestones = {}; 
-        this.history = []; // 매일 밤 유물 상태 기록
     }
 
     getHandCount() {
         return this.hand.filter(c => c.cat !== 'loki').length;
+    }
+
+    // [New] 로키 사용 기록 헬퍼 메서드
+    recordLokiUse(card) {
+        this.metrics.lokiUsed++;
+        if (card && card.extra && card.extra.id) {
+            this.usedLokiIds.push(card.extra.id);
+        }
     }
 }
 
@@ -808,27 +840,29 @@ Game.prototype.aiCalculateTargetValue = function(art, isReserved) {
 Game.prototype.aiPlayLokiTactics = function() {
     const ai = this.cp;
     
-    // 1. 계승자의 문장 (+2점)
+    // 1. 계승자의 문장
     const crestIdx = ai.hand.findIndex(c => c.cat === 'loki' && c.extra.type === 'instant_score');
     if (crestIdx !== -1) { 
         ai.score += 2; 
+        const card = ai.hand[crestIdx];
         ai.hand.splice(crestIdx, 1); 
-        ai.metrics.lokiUsed++; 
+        ai.recordLokiUse(card); 
         return true; 
     }
 
-    // 2. 구부러진 시곗바늘 (시간 -1)
+    // 2. 구부러진 시곗바늘
     const clockIdx = ai.hand.findIndex(c => c.cat === 'loki' && c.extra.type === 'active_time');
     if (clockIdx !== -1) {
         if (ai.time >= 9 || (ai.score < 10 && ai.time >= 7)) {
             ai.time = Math.max(0, ai.time - 1); 
+            const card = ai.hand[clockIdx];
             ai.hand.splice(clockIdx, 1); 
-            ai.metrics.lokiUsed++; 
+            ai.recordLokiUse(card); 
             return true;
         }
     }
 
-    // 3. 검은 주사위 (자원 교체) - 인덱스 오류 방지 적용됨
+    // 3. 검은 주사위
     const diceIdx = ai.hand.findIndex(c => c.cat === 'loki' && c.extra.type === 'active_draw');
     if (diceIdx !== -1) {
         const junkIndices = ai.hand.map((c, i) => (c.cat === 'resource' && c.val <= 3) ? i : -1).filter(i => i !== -1);
@@ -836,7 +870,10 @@ Game.prototype.aiPlayLokiTactics = function() {
         if (junkIndices.length >= 2) {
             let targets = [diceIdx, junkIndices[0], junkIndices[1]];
             targets = [...new Set(targets)];
-            targets.sort((a, b) => b - a); // 뒤에서부터 삭제하여 인덱스 유지
+            targets.sort((a, b) => b - a); 
+
+            // 카드를 splice하기 전에 참조 객체 확보
+            const lokiCard = ai.hand[diceIdx]; 
 
             targets.forEach(idx => ai.hand.splice(idx, 1));
             
@@ -847,7 +884,7 @@ Game.prototype.aiPlayLokiTactics = function() {
                     ai.metrics.resAcquired += newCard.val;
                 }
             }
-            ai.metrics.lokiUsed++;
+            ai.recordLokiUse(lokiCard); 
             this.consumeTime(1); 
             return true;
         }
@@ -876,8 +913,9 @@ Game.prototype.aiPlayLokiTactics = function() {
             for(let k=1; k<candidates.length; k++) this.deckArt.discard(candidates[k]);
         }
 
+        const card = ai.hand[diaryIdx];
         ai.hand.splice(diaryIdx, 1);
-        ai.metrics.lokiUsed++;
+        ai.recordLokiUse(card); 
         this.consumeTime(1);
         return true;
     }
@@ -894,8 +932,9 @@ Game.prototype.aiPlayLokiTactics = function() {
             this.fieldRes = [];
             this.fill('resource', 6);
             
+            const card = ai.hand[hammerIdx];
             ai.hand.splice(hammerIdx, 1);
-            ai.metrics.lokiUsed++;
+            ai.recordLokiUse(card); 
             this.consumeTime(1);
             return true;
         }
@@ -949,6 +988,7 @@ Game.prototype.processCraftTransaction = function(ai, plan) {
     let requirements = { ...art.cost };
     let olympusSavedAmount = 0;
 
+    // 올림포스 할인 적용
     if (plan.discountType) {
         const olympusLv = this.getArtLevel('olympus'); 
         const amt = BALANCE_CONFIG.OLYMPUS.DISCOUNT[Math.min(olympusLv, 3)];
@@ -959,7 +999,7 @@ Game.prototype.processCraftTransaction = function(ai, plan) {
     let cardsToPay = [];
     let hand = [...ai.hand];
     
-    // 1. Res
+    // 1. 자원 지불 (Resource)
     for (const [reqType, reqVal] of Object.entries(requirements)) {
         let needed = reqVal;
         for (let i = hand.length - 1; i >= 0; i--) {
@@ -971,7 +1011,7 @@ Game.prototype.processCraftTransaction = function(ai, plan) {
         }
         requirements[reqType] = Math.max(0, needed);
     }
-    // 2. Loki
+    // 2. 로키 자원 대체 (Loki Resource Split)
     for (const [reqType, reqVal] of Object.entries(requirements)) {
         let needed = reqVal; if (needed <= 0) continue;
         for (let i = hand.length - 1; i >= 0; i--) {
@@ -983,7 +1023,7 @@ Game.prototype.processCraftTransaction = function(ai, plan) {
         }
         requirements[reqType] = Math.max(0, needed);
     }
-    // 3. Celt Swap
+    // 3. 켈트 자원 변환 (Celt Swap)
     const activeCeltLv = this.getArtLevel('celt');
     const maxSwaps = BALANCE_CONFIG.CELT.SWAP_LIMIT[Math.min(activeCeltLv, 3)];
     let usedSwaps = 0; let currentTotalSwaps = ai.celtConvertCount;
@@ -1001,9 +1041,10 @@ Game.prototype.processCraftTransaction = function(ai, plan) {
         requirements[reqType] = Math.max(0, needed);
     }
 
+    // 자원 부족 시 실패 처리
     if (Object.values(requirements).reduce((a,b)=>a+b, 0) > 0) return false;
 
-    // Bless
+    // 축복 지불 (Bless Payment)
     const isConvert = BALANCE_CONFIG.CELT.LVL_CONVERT.includes(realCeltCount);
     const isFree = BALANCE_CONFIG.CELT.LVL_FREE.includes(realCeltCount);
     if (!isFree) {
@@ -1012,6 +1053,7 @@ Game.prototype.processCraftTransaction = function(ai, plan) {
          if (blessIdx !== -1) { cardsToPay.push(hand[blessIdx]); hand.splice(blessIdx, 1); } else return false;
     }
 
+    // 메트릭 업데이트 및 카드 버림
     if (olympusSavedAmount > 0) ai.metrics.savedRes += olympusSavedAmount;
     if (usedSwaps > 0) { ai.metrics.celtSwaps += usedSwaps; ai.celtConvertCount += usedSwaps; }
     ai.hand = hand;
@@ -1021,19 +1063,30 @@ Game.prototype.processCraftTransaction = function(ai, plan) {
         else if(c.cat === 'loki') this.deckLoki.discard(c); 
     });
 
+    // 점수 및 유물 등록
     let scoreBonus = (art.score >= 24) ? 4 : (art.score >= 10 ? 3 : 2);
     const craftedArt = { ...art, isGrace: true, finalScore: art.score + scoreBonus, bonus: scoreBonus };
     ai.artifacts.push(craftedArt);
     ai.score += craftedArt.finalScore;
 
     const typeCount = ai.artifacts.filter(a => a.type === craftedArt.type).length;
-    if (typeCount === 3 && ai.milestones[craftedArt.type] === undefined) ai.milestones[craftedArt.type] = this.craftOrder++; 
+    
+    // [Track] 엔진 가동 시점(3단계) 기록
+    if (typeCount === 3) {
+        if (ai.milestones[craftedArt.type] === undefined) ai.milestones[craftedArt.type] = this.craftOrder++;
+        if (ai.lvl3Turn[craftedArt.type] === -1) ai.lvl3Turn[craftedArt.type] = ai.totalTurns;
+    }
 
+    // 시장/예약 처리
     if (fromReserve) ai.reserved.splice(plan.targetIdx, 1);
     else { this.fieldArt.splice(plan.targetIdx, 1); this.fill('artifact', 7); }
     
+    // [Track] 부서진 회중시계 사용 기록
     const freeCardIdx = cardsToPay.findIndex(c => c.cat === 'loki' && c.extra.type === 'passive_free');
-    if (freeCardIdx !== -1) { ai.metrics.lokiUsed++; this.consumeTime(0); }
+    if (freeCardIdx !== -1) { 
+        ai.recordLokiUse(cardsToPay[freeCardIdx]); 
+        this.consumeTime(0); 
+    }
     else this.consumeTime(this.getCost('ART'));
 
     return true;
@@ -1103,15 +1156,11 @@ Game.prototype.aiTurn = function() {
 Game.prototype.aiActionGather = function(plan) {
     const ai = this.cp;
     
-    // 축복 처리 (켈트 로직 보강됨)
     if (plan.needBless) {
-        // 1. 먼저 정석대로 필요한 축복 찾기
         let blessIdx = this.fieldBless.findIndex(c => c.type === plan.art.type);
-        
-        // 2. [신규 로직] 정석 축복이 없고 '변환(Any)' 능력이 있다면, 아무 축복이나 찾기
         const realCeltCount = ai.artifacts.filter(a => a.type === 'celt').length;
         if (blessIdx === -1 && BALANCE_CONFIG.CELT.LVL_CONVERT.includes(realCeltCount)) {
-            blessIdx = this.fieldBless.findIndex(c => true); // 아무거나 첫 번째
+            blessIdx = this.fieldBless.findIndex(c => true); 
         }
 
         if (blessIdx !== -1) {
@@ -1120,16 +1169,18 @@ Game.prototype.aiActionGather = function(plan) {
             this.fill('blessing', 4);
             this.consumeTime(this.getCost('BLESS'));
         } else {
-            // 성배(리셋) 체크
+            // [Track] 파괴된 성배 사용 추적
             const grailIdx = ai.hand.findIndex(c => c.cat === 'loki' && c.extra.type === 'active_reset_bless');
             if (grailIdx !== -1) {
                 this.fieldBless.forEach(c => this.deckBless.discard(c));
                 this.fieldBless = []; this.fill('blessing', 4);
+                
+                const card = ai.hand[grailIdx];
                 ai.hand.splice(grailIdx, 1);
-                ai.metrics.lokiUsed++; 
+                ai.recordLokiUse(card); 
                 return;
             }
-            // 없으면 드로우
+            
             const c = this.deckBless.draw();
             if(c) ai.hand.push(c);
             this.consumeTime(this.getCost('BLESS'));
@@ -1137,7 +1188,6 @@ Game.prototype.aiActionGather = function(plan) {
         return;
     }
 
-    // 이하 자원 수집 로직은 기존과 동일
     if (this.getArtLevel('nord') > 0 && this.aiTryNordAction(plan.art)) return;
 
     let neededTypes = [];
@@ -1146,17 +1196,14 @@ Game.prototype.aiActionGather = function(plan) {
     for(const [t, req] of Object.entries(plan.art.cost)) { if(myRes[t] < req) neededTypes.push(t); }
 
     let targetIdx = -1;
-    // 3장 이상인 필요 자원 우선
     for(let i=0; i<this.fieldRes.length; i++) {
         if (neededTypes.includes(this.fieldRes[i].type) && this.fieldRes[i].val >= 3) { targetIdx = i; break; }
     }
-    // 없으면 그냥 필요 자원
     if(targetIdx === -1) {
         for(let i=0; i<this.fieldRes.length; i++) {
             if (neededTypes.includes(this.fieldRes[i].type)) { targetIdx = i; break; }
         }
     }
-    // 그것도 없으면 고밸류(6+) 자원 (견제 및 교환용)
     if(targetIdx === -1) {
         for(let i=0; i<this.fieldRes.length; i++) { if (this.fieldRes[i].val >= 6) { targetIdx = i; break; } }
     }
@@ -1178,40 +1225,102 @@ Game.prototype.aiActionGather = function(plan) {
     }
 };
 
+// [Part 3] AI Logic Update: Nord Multi-Gather Fix (v9.2 Verified)
 Game.prototype.aiTryNordAction = function(targetArt) {
     const ai = this.cp;
-    if (ai.getHandCount() >= 6) return false;
+    const handLimit = CONFIG.HAND_LIMIT; // 보통 8
+    
+    // 핸드 공간이 최소 2칸은 있어야 능력 발동 시도 (아니면 일반 수집으로 fallback)
+    if (ai.getHandCount() >= handLimit - 1) return false;
 
-    const nordLv = this.getArtLevel('nord');
-    const limitSum = BALANCE_CONFIG.NORD.LIMIT_SUM[Math.min(nordLv, 3)];
+    // 1. [Fix] 인덱스 보정 (Level 1 -> Index 0)
+    const nordLv = this.getArtLevel('nord'); 
+    if (nordLv <= 0) return false; // 방어 코드
+
+    // 배열 범위 안전 접근 (Lv1->0, Lv2->1, Lv3->2)
+    const statIdx = Math.min(Math.max(0, nordLv - 1), 2); 
+    
+    const limitSum = BALANCE_CONFIG.NORD.LIMIT_SUM[statIdx];
+    const maxCount = BALANCE_CONFIG.NORD.LIMIT_COUNT[statIdx]; // 2 or 3
+
     let indices = this.fieldRes.map((_, i) => i);
     let bestCombo = null;
     let bestScore = -1;
 
-    for (let i = 0; i < indices.length; i++) {
-        for (let j = i + 1; j < indices.length; j++) {
-            const c1 = this.fieldRes[i];
-            const c2 = this.fieldRes[j];
-            if (c1.val + c2.val <= limitSum) {
-                let score = c1.val + c2.val;
-                if (targetArt.cost[c1.type] > 0) score += 10;
-                if (targetArt.cost[c2.type] > 0) score += 10;
-                if (score > bestScore) { bestScore = score; bestCombo = [i, j]; }
+    // 2. [2장 조합] 탐색
+    // 공간이 2칸 이상 있을 때 수행
+    if (maxCount >= 2 && ai.getHandCount() <= handLimit - 2) {
+        for (let i = 0; i < indices.length; i++) {
+            for (let j = i + 1; j < indices.length; j++) {
+                const c1 = this.fieldRes[i];
+                const c2 = this.fieldRes[j];
+                const sumVal = c1.val + c2.val;
+
+                if (sumVal <= limitSum) {
+                    let score = sumVal;
+                    // 목표 재료 가중치
+                    if (targetArt.cost[c1.type] > 0) score += 15;
+                    if (targetArt.cost[c2.type] > 0) score += 15;
+                    
+                    if (score > bestScore) { 
+                        bestScore = score; 
+                        bestCombo = [i, j]; 
+                    }
+                }
             }
         }
     }
 
+    // 3. [3장 조합] 탐색 (3단계 활성 시)
+    // 공간이 3칸 이상 있을 때 수행
+    if (maxCount >= 3 && ai.getHandCount() <= handLimit - 3) {
+        for (let i = 0; i < indices.length; i++) {
+            for (let j = i + 1; j < indices.length; j++) {
+                for (let k = j + 1; k < indices.length; k++) {
+                    const c1 = this.fieldRes[i];
+                    const c2 = this.fieldRes[j];
+                    const c3 = this.fieldRes[k];
+                    const sumVal = c1.val + c2.val + c3.val;
+
+                    if (sumVal <= limitSum) {
+                        let score = sumVal;
+                        
+                        // [Logic Update] 3장을 먹는 것의 전략적 가치를 대폭 상향 (+20)
+                        // 합계가 낮더라도 3장을 털어오는 것이 노르드 운영의 핵심
+                        score += 20; 
+                        
+                        if (targetArt.cost[c1.type] > 0) score += 15;
+                        if (targetArt.cost[c2.type] > 0) score += 15;
+                        if (targetArt.cost[c3.type] > 0) score += 15;
+
+                        if (score > bestScore) { 
+                            bestScore = score; 
+                            bestCombo = [i, j, k]; 
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // 4. 최적 조합 실행
     if (bestCombo) {
-        bestCombo.sort((a, b) => b - a);
+        bestCombo.sort((a, b) => b - a); // 역순 정렬 (인덱스 밀림 방지)
+        
         bestCombo.forEach(idx => {
-            ai.hand.push(this.fieldRes[idx]);
+            const card = this.fieldRes[idx];
+            ai.hand.push(card);
+            ai.metrics.resAcquired += card.val;
             this.fieldRes.splice(idx, 1);
         });
+        
         this.fill('resource', 6);
-        this.consumeTime(this.getCost('RES'));
+        // 시간 소모는 일반 수집과 동일 (Config에 별도 Time Reduce가 없다면)
+        this.consumeTime(this.getCost('RES')); 
         return true;
     }
-    return false;
+
+    return false; // 노르드 조건 만족 조합 없음 -> 일반 수집 수행
 };
 
 Game.prototype.aiSmartDiscard = function(ai) {
@@ -1246,24 +1355,23 @@ class SimulationManager {
     constructor() {
         this.isRunning = false;
         this.stats = this.getEmptyStats();
-        this.csvData = []; 
+        this.csvData = []; // 데이터 저장소
     }
 
     getEmptyStats() {
         return {
             totalGames: 0,
             wins: [0, 0, 0, 0, 0],
+            draws: 0,
             totalScore: 0,
             days: 0,
             godWins2: { olympus: 0, egypt: 0, nord: 0, celt: 0, mix: 0 },
             godWins3: { olympus: 0, egypt: 0, nord: 0, celt: 0, mix: 0 },
             totalSaved: 0, totalWasted: 0, totalSwaps: 0,
-            dailyScoreSum: [0, 0, 0, 0, 0], 
-            winTier: { Bronze: 0, Silver: 0, Gold: 0 }, 
-            totalResAcquired: 0, totalResConsumed: 0, 
+            dailyScoreSum: [0, 0, 0, 0, 0],
+            winTier: { Bronze: 0, Silver: 0, Gold: 0 },
+            totalResAcquired: 0, totalResConsumed: 0,
             winnerLokiSum: 0, loserLokiSum: 0,
-
-            // [추가됨] 신화별 일일 점수 집계
             mythDailyStats: {
                 olympus: { sum: [0,0,0,0,0], count: 0 },
                 egypt: { sum: [0,0,0,0,0], count: 0 },
@@ -1273,11 +1381,33 @@ class SimulationManager {
         };
     }
 
+    // [Core Logic] 시뮬레이션 1회 실행
+    runOneGame(mythAssignments, gameId) {
+        const game = new Game();
+        game.init(mythAssignments);
+
+        let safetyCount = 0;
+        // [Safety Update] 300 -> 1000 상향 (이집트/로키 변수 대응)
+        while (!game.isGameEnded && safetyCount < 1000) {
+            game.aiTurn();
+            safetyCount++;
+        }
+
+        if (game.isGameEnded) {
+            this.collectData(game, gameId);
+        } else {
+            console.warn(`[Warning] Game ${gameId} aborted due to infinite loop risk.`);
+        }
+    }
+
     async startSimulation() {
         if (this.isRunning) return;
         applyUserBalance();
-        // CSV 헤더 초기화
-        this.csvData = ["GameID,Day,PlayerID,MainMyth,IsWinner,Score,OlympusLv,EgyptLv,NordLv,CeltLv"];
+        
+        // [Data Persistence] 누적 데이터 처리
+        if (this.csvData.length === 0) {
+            this.csvData = ["GameID,Day,PlayerID,MainMyth,IsWinner,Score,OlympusLv,EgyptLv,NordLv,CeltLv,TotalTurns,EngineTurn,HandValue,EffRatio,UsedLoki"];
+        }
         
         const countInput = document.getElementById('simCount');
         const count = parseInt(countInput.value);
@@ -1289,19 +1419,19 @@ class SimulationManager {
         ];
 
         this.isRunning = true;
-        this.updateLog(`[System] ${count}회 시뮬레이션 시작 (Data Mining Mode)`);
+        let startGameId = this.stats.totalGames + 1; // ID 연속성 보장
+        
+        this.updateLog(`[System] ${count}회 추가 시뮬레이션 시작 (Data Mining Mode v9.2)`);
         
         let chunkSize = 100;
         if (count >= 5000) chunkSize = 500;
         const startTime = performance.now();
         
-        let gameIdCounter = 1;
-
         for (let i = 0; i < count; i += chunkSize) {
             if (!this.isRunning) break;
             const limit = Math.min(i + chunkSize, count);
             for (let j = i; j < limit; j++) { 
-                this.runOneGame(myths, gameIdCounter++); 
+                this.runOneGame(myths, startGameId++); 
             }
             const progress = Math.round(((i + chunkSize) / count) * 100);
             document.getElementById('progressBar').style.width = `${progress}%`;
@@ -1317,48 +1447,42 @@ class SimulationManager {
         document.getElementById('progressBar').style.width = `0%`;
     }
 
-    resetStats() {
-        if (confirm("통계 및 CSV 데이터를 초기화하시겠습니까?")) {
-            this.stats = this.getEmptyStats();
-            this.csvData = [];
-            this.renderStats();
-            this.updateLog(`[System] 초기화 완료`);
-        }
+    stopSimulation() {
+        this.isRunning = false;
+        this.updateLog("[System] 시뮬레이션 중지됨.");
     }
-    
-    stopSimulation() { this.isRunning = false; }
 
-    runOneGame(myths, gameId) {
-        const game = new Game();
-        game.init(myths);
-        
-        game.players.forEach(p => { 
-            p.milestones = {}; 
-            if (p.getHandCount() > 8) game.aiSmartDiscard(p); 
-        });
-
-        let safetyBreak = 0;
-        while (!game.isGameEnded && safetyBreak < 800) { 
-            game.aiTurn(); 
-            safetyBreak++; 
-        }
-        if (!game.isGameEnded) game.endGame();
-        this.collectData(game, gameId);
+    resetStats() {
+        this.stats = this.getEmptyStats();
+        this.csvData = []; // 리셋 시에만 CSV 초기화
+        this.updateLog("[System] 통계 및 데이터가 초기화되었습니다.");
+        document.getElementById('mainStats').innerHTML = "";
+        document.getElementById('detailStats').innerHTML = "";
     }
 
     collectData(game, gameId) {
-        let winner = game.players[0];
-        game.players.forEach(p => {
-            if (p.score > winner.score) winner = p;
-            else if (p.score === winner.score) {
-                if (p.artifacts.length > winner.artifacts.length) winner = p;
-            }
-        });
+        // 1. 최고 점수 및 승자 판정
+        let maxScore = -1;
+        game.players.forEach(p => { if(p.score > maxScore) maxScore = p.score; });
+        
+        let scoreCandidates = game.players.filter(p => p.score === maxScore);
+        let finalWinners = [];
+        if (scoreCandidates.length === 1) {
+            finalWinners.push(scoreCandidates[0]);
+        } else {
+            // 동점 시 유물 개수 타이 브레이커
+            let maxArts = -1;
+            scoreCandidates.forEach(p => { if(p.artifacts.length > maxArts) maxArts = p.artifacts.length; });
+            finalWinners = scoreCandidates.filter(p => p.artifacts.length === maxArts);
+        }
 
         this.stats.totalGames++;
-        this.stats.wins[winner.id]++;
+        let isDraw = finalWinners.length > 1;
+
+        if (isDraw) this.stats.draws++;
+        else this.stats.wins[finalWinners[0].id]++;
+
         this.stats.days += game.day;
-        
         let gameTotalScore = 0;
         
         game.players.forEach(p => {
@@ -1369,7 +1493,7 @@ class SimulationManager {
             this.stats.totalResAcquired += p.metrics.resAcquired;
             this.stats.totalResConsumed += p.metrics.resConsumed;
             
-            // 일일 점수 기록 (누락분 채우기)
+            // 일별 점수 집계 (결측치 보정)
             let filledDaily = [...p.dailyScore];
             for(let d=0; d<5; d++) {
                 if (filledDaily[d] === -1) {
@@ -1379,95 +1503,90 @@ class SimulationManager {
                 this.stats.dailyScoreSum[d] += filledDaily[d];
             }
 
+            // 주력 신화(Meta) 판단
             const counts = { olympus: 0, egypt: 0, nord: 0, celt: 0 };
             p.artifacts.forEach(a => { if(counts[a.type] !== undefined) counts[a.type]++; });
             
-            // [Logic Update] 동점자 발생 시 마일스톤(선착순) 기준 주력 신화 판별
             let mainMyth = 'mix';
             let maxVal = 0;
-            
-            // 1. 최다 보유량 찾기
-            for(const c of Object.values(counts)) {
-                if (c > maxVal) maxVal = c;
-            }
-
-            // 2. 후보군 선정
+            for(const c of Object.values(counts)) { if (c > maxVal) maxVal = c; }
             const candidates = Object.keys(counts).filter(m => counts[m] === maxVal);
-
+            
             if (candidates.length === 1) {
                 mainMyth = candidates[0];
             } else {
-                // 3. 동점 시 마일스톤(3단계 달성 순서) 비교
                 candidates.sort((a, b) => {
                     const orderA = p.milestones[a] !== undefined ? p.milestones[a] : 99999;
                     const orderB = p.milestones[b] !== undefined ? p.milestones[b] : 99999;
                     return orderA - orderB;
                 });
-
-                if (p.milestones[candidates[0]] !== undefined) {
-                    mainMyth = candidates[0];
-                } else {
-                    mainMyth = 'mix';
-                }
+                mainMyth = (p.milestones[candidates[0]] !== undefined) ? candidates[0] : 'mix';
             }
 
-            // 통계 집계
             if (mainMyth !== 'mix' && this.stats.mythDailyStats[mainMyth]) {
                 this.stats.mythDailyStats[mainMyth].count++;
-                for(let d=0; d<5; d++) {
-                    this.stats.mythDailyStats[mainMyth].sum[d] += filledDaily[d];
-                }
+                for(let d=0; d<5; d++) this.stats.mythDailyStats[mainMyth].sum[d] += filledDaily[d];
             }
 
-            // CSV 데이터 적재
-            const isWinner = (p.id === winner.id) ? 1 : 0;
-            p.history.forEach(h => {
-                this.csvData.push(
-                    `${gameId},${h.day},P${p.id},${mainMyth},${isWinner},${h.score},${h.olympus},${h.egypt},${h.nord},${h.celt}`
+            // CSV 데이터 생성
+            const winStatus = isDraw ? (finalWinners.some(fw => fw.id === p.id) ? "Draw" : 0) : (finalWinners[0].id === p.id ? 1 : 0);
+            const engineTurn = (mainMyth !== 'mix') ? p.lvl3Turn[mainMyth] : -1;
+            let handValue = 0;
+            p.hand.forEach(c => { if(c.cat === 'resource') handValue += c.val; });
+            const effRatio = p.metrics.resAcquired > 0 ? (p.metrics.resConsumed / p.metrics.resAcquired).toFixed(3) : 0;
+            const lokiStr = p.usedLokiIds.length > 0 ? p.usedLokiIds.join('|') : "None";
+
+            const h = p.history[p.history.length - 1]; 
+            if (h) {
+                 this.csvData.push(
+                    `${gameId},${h.day},P${p.id},${mainMyth},${winStatus},${h.score},${h.olympus},${h.egypt},${h.nord},${h.celt},${p.totalTurns},${engineTurn},${handValue},${effRatio},${lokiStr}`
                 );
-            });
+            }
         });
         
         this.stats.totalScore += (gameTotalScore / 4);
 
-        winner.artifacts.forEach(a => {
-            if(this.stats.winTier[a.grade] !== undefined) this.stats.winTier[a.grade]++;
-        });
-        this.stats.winnerLokiSum += winner.metrics.lokiUsed;
-        let losersLoki = 0;
-        game.players.forEach(p => { if(p !== winner) losersLoki += p.metrics.lokiUsed; });
-        this.stats.loserLokiSum += (losersLoki / 3);
-
-        const wCounts = { olympus:0, egypt:0, nord:0, celt:0 };
-        winner.artifacts.forEach(a => wCounts[a.type]++);
-        const wMax = Math.max(...Object.values(wCounts));
-        
-        // [Logic Update] 승자 통계표용 판별 함수
-        const determineType = (threshold) => {
-            if (wMax < threshold) return 'mix';
-            const leaders = Object.keys(wCounts).filter(key => wCounts[key] === wMax);
-            if (leaders.length === 1) return leaders[0];
-            
-            leaders.sort((a, b) => {
-                const orderA = winner.milestones[a] !== undefined ? winner.milestones[a] : 99999;
-                const orderB = winner.milestones[b] !== undefined ? winner.milestones[b] : 99999;
-                return orderA - orderB;
+        // 승자 전용 통계 (무승부 제외)
+        if (!isDraw) {
+            const winner = finalWinners[0];
+            winner.artifacts.forEach(a => {
+                if(this.stats.winTier[a.grade] !== undefined) this.stats.winTier[a.grade]++;
             });
             
-            if (winner.milestones[leaders[0]] === undefined && threshold >= 3) return 'mix';
-            return leaders[0];
-        };
-        
-        this.stats.godWins2[determineType(2)]++;
-        this.stats.godWins3[determineType(3)]++;
+            this.stats.winnerLokiSum += winner.metrics.lokiUsed;
+            let losersLoki = 0;
+            game.players.forEach(p => { if(p.id !== winner.id) losersLoki += p.metrics.lokiUsed; });
+            this.stats.loserLokiSum += (losersLoki / 3); // 패자 3명의 평균
+
+            const wCounts = { olympus:0, egypt:0, nord:0, celt:0 };
+            winner.artifacts.forEach(a => wCounts[a.type]++);
+            const wMax = Math.max(...Object.values(wCounts));
+            
+            const determineType = (threshold) => {
+                if (wMax < threshold) return 'mix';
+                const leaders = Object.keys(wCounts).filter(key => wCounts[key] === wMax);
+                if (leaders.length === 1) return leaders[0];
+                
+                leaders.sort((a, b) => {
+                    const orderA = winner.milestones[a] !== undefined ? winner.milestones[a] : 99999;
+                    const orderB = winner.milestones[b] !== undefined ? winner.milestones[b] : 99999;
+                    return orderA - orderB;
+                });
+                
+                if (winner.milestones[leaders[0]] === undefined && threshold >= 3) return 'mix';
+                return leaders[0];
+            };
+            
+            this.stats.godWins2[determineType(2)]++;
+            this.stats.godWins3[determineType(3)]++;
+        }
     }
 
     updateLog(msg) {
         const log = document.getElementById('simLog');
-        log.innerText = msg + "\n" + log.innerText;
+        if(log) log.innerText = msg + "\n" + log.innerText;
     }
     
-    // [추가됨] CSV 다운로드 기능
     downloadRawData() {
         if (this.csvData.length <= 1) { alert("데이터가 없습니다. 시뮬레이션을 먼저 실행하세요."); return; }
         
@@ -1487,9 +1606,11 @@ class SimulationManager {
     renderStats() {
         const total = this.stats.totalGames;
         if (total === 0) return;
-        const getPct = (val) => ((val / total) * 100).toFixed(1) + '%';
         
-        const dailyAvg = this.stats.dailyScoreSum.map(s => (s / (total * 4)).toFixed(1));
+        const getPct = (val) => ((val / total) * 100).toFixed(1) + '%';
+        const validGames = total - this.stats.draws; 
+        const calcPct = (val) => validGames > 0 ? ((val / validGames) * 100).toFixed(1) + '%' : '0.0%';
+        
         const tierTotal = this.stats.winTier.Bronze + this.stats.winTier.Silver + this.stats.winTier.Gold;
         const tierPct = {
             Bronze: tierTotal > 0 ? ((this.stats.winTier.Bronze / tierTotal) * 100).toFixed(1) : 0,
@@ -1497,10 +1618,11 @@ class SimulationManager {
             Gold: tierTotal > 0 ? ((this.stats.winTier.Gold / tierTotal) * 100).toFixed(1) : 0
         };
         const eff = this.stats.totalResAcquired > 0 ? ((this.stats.totalResConsumed / this.stats.totalResAcquired) * 100).toFixed(1) : 0;
-        const winLoki = (this.stats.winnerLokiSum / total).toFixed(2);
-        const loseLoki = (this.stats.loserLokiSum / total).toFixed(2);
         
-        // [추가됨] 신화별 일일 성장 데이터 HTML
+        // [Logic Fix] 분모를 validGames로 변경하여 무승부 왜곡 방지
+        const winLoki = validGames > 0 ? (this.stats.winnerLokiSum / validGames).toFixed(2) : "0.00";
+        const loseLoki = validGames > 0 ? (this.stats.loserLokiSum / validGames).toFixed(2) : "0.00";
+        
         let mythGrowthHtml = `<table style="font-size:11px;"><tr><th>신화</th><th>1일</th><th>2일</th><th>3일</th><th>4일</th><th>5일</th></tr>`;
         ['olympus','egypt','nord','celt'].forEach(m => {
             const d = this.stats.mythDailyStats[m];
@@ -1515,18 +1637,18 @@ class SimulationManager {
         });
         mythGrowthHtml += `</table>`;
 
-        let html = `<div class="grid-container" style="grid-template-columns:1fr 1fr 1fr 1fr; margin-bottom:10px;">`;
+        let html = `<div class="grid-container" style="grid-template-columns:1fr 1fr 1fr 1fr 1fr; margin-bottom:10px;">`; 
         for(let i=1; i<=4; i++) {
             const color = ['#e74c3c','#3498db','#2ecc71','#f1c40f'][i-1];
             html += `<div style="color:${color}; font-weight:bold;">P${i}: ${getPct(this.stats.wins[i])}</div>`;
         }
+        html += `<div style="color:#aaa; font-weight:bold;">Draw: ${getPct(this.stats.draws)}</div>`;
         html += `</div>`;
         
-        // [추가됨] 다운로드 버튼
         html += `<button onclick="simManager.downloadRawData()" style="width:100%; background:#27ae60; margin-bottom:15px;">📥 조합 분석용 엑셀 데이터 다운로드 (.csv)</button>`;
 
         html += `<table>
-            <tr><th colspan="3">🏛️ 신화별 승률 (메타 분석)</th></tr>
+            <tr><th colspan="3">🏛️ 신화별 승률 (Draw 제외)</th></tr>
             <tr>
                 <th style="text-align:left;">메타(Deck)</th>
                 <th>2+ (유연)</th>
@@ -1534,28 +1656,28 @@ class SimulationManager {
             </tr>
             <tr>
                 <td style="text-align:left; color:#00bfff;">☁️ 올림포스</td>
-                <td>${getPct(this.stats.godWins2.olympus)}</td>
-                <td style="font-weight:bold;">${getPct(this.stats.godWins3.olympus)}</td>
+                <td>${calcPct(this.stats.godWins2.olympus)}</td>
+                <td style="font-weight:bold;">${calcPct(this.stats.godWins3.olympus)}</td>
             </tr>
             <tr>
                 <td style="text-align:left; color:#ffd700;">👁️ 이집트</td>
-                <td>${getPct(this.stats.godWins2.egypt)}</td>
-                <td style="font-weight:bold;">${getPct(this.stats.godWins3.egypt)}</td>
+                <td>${calcPct(this.stats.godWins2.egypt)}</td>
+                <td style="font-weight:bold;">${calcPct(this.stats.godWins3.egypt)}</td>
             </tr>
             <tr>
                 <td style="text-align:left; color:#9b59b6;">❄️ 노르드</td>
-                <td>${getPct(this.stats.godWins2.nord)}</td>
-                <td style="font-weight:bold;">${getPct(this.stats.godWins3.nord)}</td>
+                <td>${calcPct(this.stats.godWins2.nord)}</td>
+                <td style="font-weight:bold;">${calcPct(this.stats.godWins3.nord)}</td>
             </tr>
             <tr>
                 <td style="text-align:left; color:#2ecc71;">☘️ 켈트</td>
-                <td>${getPct(this.stats.godWins2.celt)}</td>
-                <td style="font-weight:bold;">${getPct(this.stats.godWins3.celt)}</td>
+                <td>${calcPct(this.stats.godWins2.celt)}</td>
+                <td style="font-weight:bold;">${calcPct(this.stats.godWins3.celt)}</td>
             </tr>
             <tr>
                 <td style="text-align:left; color:#aaa;">🎨 잡탕(Mix)</td>
-                <td>${getPct(this.stats.godWins2.mix)}</td>
-                <td>${getPct(this.stats.godWins3.mix)}</td>
+                <td>${calcPct(this.stats.godWins2.mix)}</td>
+                <td>${calcPct(this.stats.godWins3.mix)}</td>
             </tr>
         </table>`;
 
@@ -1573,9 +1695,9 @@ class SimulationManager {
                     </tr>
                 </table>
             </div>
-        </div>
+        </div>`;
         
-        <table style="margin-top: 15px;">
+        html += `<table style="margin-top: 15px;">
             <tr><th colspan="3">🔍 심층 효율 분석</th></tr>
             <tr>
                 <td>📉 자원 효율성<br><span style="font-size:10px; color:#888;">(소모 / 획득)</span></td>
