@@ -766,8 +766,11 @@ Game.prototype.aiCalculateTargetValue = function(art, isReserved) {
 
     let action = bestScenario.missing <= 0 ? 'CRAFT' : 'GATHER';
     let net = art.score * 10;
-    if (ai.targetMyth && art.type === ai.targetMyth) net += 100;
-
+// [수정 코드] 3개 미만일 때만 가중치 부여 (3개 달성 시 해제)
+const currentMythCount = ai.artifacts.filter(a => a.type === ai.targetMyth).length;
+if (ai.targetMyth && art.type === ai.targetMyth && currentMythCount < 3) {
+    net += 100;
+}
     if (action === 'CRAFT') {
         net += 5000;
         if (isReserved) net += 2000;
@@ -1348,29 +1351,29 @@ Game.prototype.aiEmergencyAction = function() {
 };
 
 // ==========================================
-// [Part 4] Simulation Manager
+// [Part 4] Simulation Manager (Rank Logic Added)
 // ==========================================
 
 class SimulationManager {
     constructor() {
         this.isRunning = false;
         this.stats = this.getEmptyStats();
-        this.csvData = []; // 데이터 저장소
+        this.csvData = []; 
     }
 
     getEmptyStats() {
         return {
             totalGames: 0,
-            wins: [0, 0, 0, 0, 0],
+            wins: [0, 0, 0, 0, 0], // 승리 횟수 (1등)
             draws: 0,
             totalScore: 0,
             days: 0,
             godWins2: { olympus: 0, egypt: 0, nord: 0, celt: 0, mix: 0 },
             godWins3: { olympus: 0, egypt: 0, nord: 0, celt: 0, mix: 0 },
             totalSaved: 0, totalWasted: 0, totalSwaps: 0,
+            totalResAcquired: 0, totalResConsumed: 0,
             dailyScoreSum: [0, 0, 0, 0, 0],
             winTier: { Bronze: 0, Silver: 0, Gold: 0 },
-            totalResAcquired: 0, totalResConsumed: 0,
             winnerLokiSum: 0, loserLokiSum: 0,
             mythDailyStats: {
                 olympus: { sum: [0,0,0,0,0], count: 0 },
@@ -1381,13 +1384,11 @@ class SimulationManager {
         };
     }
 
-    // [Core Logic] 시뮬레이션 1회 실행
     runOneGame(mythAssignments, gameId) {
         const game = new Game();
         game.init(mythAssignments);
 
         let safetyCount = 0;
-        // [Safety Update] 300 -> 1000 상향 (이집트/로키 변수 대응)
         while (!game.isGameEnded && safetyCount < 1000) {
             game.aiTurn();
             safetyCount++;
@@ -1404,9 +1405,9 @@ class SimulationManager {
         if (this.isRunning) return;
         applyUserBalance();
         
-        // [Data Persistence] 누적 데이터 처리
+        // [Data Schema Update] IsWinner -> Rank 변경
         if (this.csvData.length === 0) {
-            this.csvData = ["GameID,Day,PlayerID,MainMyth,IsWinner,Score,OlympusLv,EgyptLv,NordLv,CeltLv,TotalTurns,EngineTurn,HandValue,EffRatio,UsedLoki"];
+            this.csvData = ["GameID,Day,PlayerID,MainMyth,Rank,Score,OlympusLv,EgyptLv,NordLv,CeltLv,TotalTurns,EngineTurn,HandValue,EffRatio,UsedLoki"];
         }
         
         const countInput = document.getElementById('simCount');
@@ -1419,9 +1420,9 @@ class SimulationManager {
         ];
 
         this.isRunning = true;
-        let startGameId = this.stats.totalGames + 1; // ID 연속성 보장
+        let startGameId = this.stats.totalGames + 1;
         
-        this.updateLog(`[System] ${count}회 추가 시뮬레이션 시작 (Data Mining Mode v9.2)`);
+        this.updateLog(`[System] ${count}회 추가 시뮬레이션 시작 (Rank Analysis Mode)`);
         
         let chunkSize = 100;
         if (count >= 5000) chunkSize = 500;
@@ -1454,33 +1455,44 @@ class SimulationManager {
 
     resetStats() {
         this.stats = this.getEmptyStats();
-        this.csvData = []; // 리셋 시에만 CSV 초기화
+        this.csvData = [];
         this.updateLog("[System] 통계 및 데이터가 초기화되었습니다.");
         document.getElementById('mainStats').innerHTML = "";
         document.getElementById('detailStats').innerHTML = "";
     }
 
     collectData(game, gameId) {
-        // 1. 최고 점수 및 승자 판정
-        let maxScore = -1;
-        game.players.forEach(p => { if(p.score > maxScore) maxScore = p.score; });
-        
-        let scoreCandidates = game.players.filter(p => p.score === maxScore);
-        let finalWinners = [];
-        if (scoreCandidates.length === 1) {
-            finalWinners.push(scoreCandidates[0]);
-        } else {
-            // 동점 시 유물 개수 타이 브레이커
-            let maxArts = -1;
-            scoreCandidates.forEach(p => { if(p.artifacts.length > maxArts) maxArts = p.artifacts.length; });
-            finalWinners = scoreCandidates.filter(p => p.artifacts.length === maxArts);
+        // [Rank Logic] 순위 산정 알고리즘
+        // 1. 플레이어 참조 복사 후 정렬
+        let rankedPlayers = [...game.players];
+        rankedPlayers.sort((a, b) => {
+            if (b.score !== a.score) return b.score - a.score; // 1순위: 점수
+            return b.artifacts.length - a.artifacts.length;    // 2순위: 유물 개수
+            // 3순위: 무승부 (공동 순위 처리)
+        });
+
+        // 2. 순위(Rank) 부여 (공동 순위 고려)
+        rankedPlayers[0].rank = 1;
+        for (let i = 1; i < rankedPlayers.length; i++) {
+            const prev = rankedPlayers[i - 1];
+            const curr = rankedPlayers[i];
+            
+            // 점수와 유물 개수가 모두 같으면 같은 순위
+            if (curr.score === prev.score && curr.artifacts.length === prev.artifacts.length) {
+                curr.rank = prev.rank;
+            } else {
+                curr.rank = i + 1;
+            }
         }
 
-        this.stats.totalGames++;
-        let isDraw = finalWinners.length > 1;
+        // 3. 1등(승자) 그룹 추출 (통계용)
+        const winners = rankedPlayers.filter(p => p.rank === 1);
+        const isDraw = winners.length > 1;
 
+        // --- 기존 통계 집계 로직 ---
+        this.stats.totalGames++;
         if (isDraw) this.stats.draws++;
-        else this.stats.wins[finalWinners[0].id]++;
+        else this.stats.wins[winners[0].id]++;
 
         this.stats.days += game.day;
         let gameTotalScore = 0;
@@ -1493,7 +1505,7 @@ class SimulationManager {
             this.stats.totalResAcquired += p.metrics.resAcquired;
             this.stats.totalResConsumed += p.metrics.resConsumed;
             
-            // 일별 점수 집계 (결측치 보정)
+            // 일별 점수 결측치 보정
             let filledDaily = [...p.dailyScore];
             for(let d=0; d<5; d++) {
                 if (filledDaily[d] === -1) {
@@ -1503,7 +1515,7 @@ class SimulationManager {
                 this.stats.dailyScoreSum[d] += filledDaily[d];
             }
 
-            // 주력 신화(Meta) 판단
+            // 주력 신화(Main Myth) 판단
             const counts = { olympus: 0, egypt: 0, nord: 0, celt: 0 };
             p.artifacts.forEach(a => { if(counts[a.type] !== undefined) counts[a.type]++; });
             
@@ -1528,8 +1540,7 @@ class SimulationManager {
                 for(let d=0; d<5; d++) this.stats.mythDailyStats[mainMyth].sum[d] += filledDaily[d];
             }
 
-            // CSV 데이터 생성
-            const winStatus = isDraw ? (finalWinners.some(fw => fw.id === p.id) ? "Draw" : 0) : (finalWinners[0].id === p.id ? 1 : 0);
+            // [CSV Data Gen] Rank 포함하여 저장
             const engineTurn = (mainMyth !== 'mix') ? p.lvl3Turn[mainMyth] : -1;
             let handValue = 0;
             p.hand.forEach(c => { if(c.cat === 'resource') handValue += c.val; });
@@ -1539,16 +1550,16 @@ class SimulationManager {
             const h = p.history[p.history.length - 1]; 
             if (h) {
                  this.csvData.push(
-                    `${gameId},${h.day},P${p.id},${mainMyth},${winStatus},${h.score},${h.olympus},${h.egypt},${h.nord},${h.celt},${p.totalTurns},${engineTurn},${handValue},${effRatio},${lokiStr}`
+                    `${gameId},${h.day},P${p.id},${mainMyth},${p.rank},${h.score},${h.olympus},${h.egypt},${h.nord},${h.celt},${p.totalTurns},${engineTurn},${handValue},${effRatio},${lokiStr}`
                 );
             }
         });
         
         this.stats.totalScore += (gameTotalScore / 4);
 
-        // 승자 전용 통계 (무승부 제외)
+        // 승자 상세 통계 (무승부 제외)
         if (!isDraw) {
-            const winner = finalWinners[0];
+            const winner = winners[0];
             winner.artifacts.forEach(a => {
                 if(this.stats.winTier[a.grade] !== undefined) this.stats.winTier[a.grade]++;
             });
@@ -1556,7 +1567,7 @@ class SimulationManager {
             this.stats.winnerLokiSum += winner.metrics.lokiUsed;
             let losersLoki = 0;
             game.players.forEach(p => { if(p.id !== winner.id) losersLoki += p.metrics.lokiUsed; });
-            this.stats.loserLokiSum += (losersLoki / 3); // 패자 3명의 평균
+            this.stats.loserLokiSum += (losersLoki / 3); 
 
             const wCounts = { olympus:0, egypt:0, nord:0, celt:0 };
             winner.artifacts.forEach(a => wCounts[a.type]++);
@@ -1596,7 +1607,7 @@ class SimulationManager {
         
         const link = document.createElement("a");
         link.setAttribute("href", url);
-        link.setAttribute("download", `divine_forge_sim_data_${new Date().toISOString().slice(0,10)}.csv`);
+        link.setAttribute("download", `divine_forge_rank_data_${new Date().toISOString().slice(0,10)}.csv`);
         link.style.visibility = 'hidden';
         document.body.appendChild(link);
         link.click();
@@ -1619,7 +1630,6 @@ class SimulationManager {
         };
         const eff = this.stats.totalResAcquired > 0 ? ((this.stats.totalResConsumed / this.stats.totalResAcquired) * 100).toFixed(1) : 0;
         
-        // [Logic Fix] 분모를 validGames로 변경하여 무승부 왜곡 방지
         const winLoki = validGames > 0 ? (this.stats.winnerLokiSum / validGames).toFixed(2) : "0.00";
         const loseLoki = validGames > 0 ? (this.stats.loserLokiSum / validGames).toFixed(2) : "0.00";
         
@@ -1645,7 +1655,7 @@ class SimulationManager {
         html += `<div style="color:#aaa; font-weight:bold;">Draw: ${getPct(this.stats.draws)}</div>`;
         html += `</div>`;
         
-        html += `<button onclick="simManager.downloadRawData()" style="width:100%; background:#27ae60; margin-bottom:15px;">📥 조합 분석용 엑셀 데이터 다운로드 (.csv)</button>`;
+        html += `<button onclick="simManager.downloadRawData()" style="width:100%; background:#8e44ad; margin-bottom:15px; font-weight:bold;">📊 순위 데이터 다운로드 (Rank Data .csv)</button>`;
 
         html += `<table>
             <tr><th colspan="3">🏛️ 신화별 승률 (Draw 제외)</th></tr>
