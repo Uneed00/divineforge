@@ -1,0 +1,2040 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>Divine Forge: Balance Simulator (Integrated)</title>
+    <style>
+    :root {
+        --bg-color: #121212;
+        --panel-color: #1e1e1e;
+        --border-color: #333;
+        --accent-color: #3498db;
+        --text-main: #ecf0f1;
+        --text-sub: #95a5a6;
+        
+        --c-olympus: #3498db;
+        --c-egypt: #f1c40f;
+        --c-nord: #9b59b6;
+        --c-celt: #2ecc71;
+    }
+
+    body { font-family: 'Segoe UI', 'Roboto', monospace; background: var(--bg-color); color: var(--text-main); padding: 20px; margin: 0; line-height: 1.5; }
+    h1, h2, h3 { color: var(--text-main); margin: 0 0 10px 0; font-weight: 600; }
+    
+    /* Layout */
+    .control-panel { background: var(--panel-color); border: 1px solid var(--border-color); padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.3); }
+    .control-group { margin-bottom: 15px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+    
+    /* Inputs & Buttons */
+    select, input { background: #2c3e50; border: 1px solid #444; color: white; padding: 6px 10px; border-radius: 4px; }
+    button { padding: 8px 16px; border-radius: 4px; border: none; cursor: pointer; font-weight: bold; transition: 0.2s; }
+    button:hover { opacity: 0.9; transform: translateY(-1px); }
+    .btn-primary { background: var(--accent-color); color: white; }
+    .btn-danger { background: #e74c3c; color: white; }
+    .btn-warning { background: #e67e22; color: white; }
+
+    /* Dashboard Grid */
+    .dashboard-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr); /* 4열 그리드 */
+        gap: 15px;
+        margin-top: 20px;
+    }
+    .panel {
+        background: var(--panel-color);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        padding: 15px;
+        display: flex;
+        flex-direction: column;
+    }
+    .panel.full-width { grid-column: span 4; }
+    .panel.half-width { grid-column: span 2; }
+    
+    .panel-header {
+        font-size: 14px;
+        color: var(--text-sub);
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-bottom: 10px;
+        border-bottom: 1px solid #333;
+        padding-bottom: 5px;
+        display: flex;
+        justify-content: space-between;
+    }
+
+    /* Visual Elements */
+    .stat-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; font-size: 13px; }
+    .stat-label { color: var(--text-sub); flex: 1; }
+    .stat-value { font-weight: bold; color: var(--text-main); text-align: right; }
+    
+    .bar-wrapper { flex: 2; height: 8px; background: #333; border-radius: 4px; margin: 0 10px; overflow: hidden; position: relative; }
+    .bar-fill { height: 100%; border-radius: 4px; transition: width 0.5s ease; }
+    
+    .mini-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    .mini-table th { text-align: left; color: var(--text-sub); padding: 4px; border-bottom: 1px solid #444; }
+    .mini-table td { padding: 4px; border-bottom: 1px solid #333; }
+    .mini-table tr:last-child td { border-bottom: none; }
+
+    /* Colors */
+    .c-olympus { color: var(--c-olympus); }
+    .c-egypt { color: var(--c-egypt); }
+    .c-nord { color: var(--c-nord); }
+    .c-celt { color: var(--c-celt); }
+    
+    .log-area { height: 150px; overflow-y: auto; background: #000; border: 1px solid #333; padding: 10px; font-size: 11px; color: #aaa; font-family: monospace; margin-bottom: 10px; }
+    
+    #progressBar { height: 4px; background: #2ecc71; width: 0%; transition: width 0.2s; }
+</style>
+</head>
+<body>
+
+    <h1>⚖️ Divine Forge Simulator v9.1 (Fixed)</h1>
+
+    
+       <div class="control-panel">
+    <div class="control-group">
+        <label>시뮬레이션 횟수:</label>
+        <select id="simCount">
+            <option value="100">100회</option>
+            <option value="1000">1,000회</option>
+            <option value="10000" selected>10,000회</option>
+        </select>
+        <button onclick="simManager.startSimulation()">▶ 추가 실행 (누적)</button>
+        <button class="stop-btn" onclick="simManager.stopSimulation()">⏹ 중지</button>
+        
+        <div style="width: 20px;"></div> <button onclick="simManager.resetStats()" style="background: #e67e22;">🔄 통계 초기화</button>
+    </div>
+    
+    <div class="control-group">
+        <span>신화 배정(P1~P4):</span>
+        <select id="p1Myth">
+            <option value="none">없음 (무가중치)</option>
+            <option value="olympus">올림포스</option>
+            <option value="egypt">이집트</option>
+            <option value="nord">노르드</option>
+            <option value="celt">켈트</option>
+        </select>
+        <select id="p2Myth">
+            <option value="egypt" selected>이집트</option>
+            <option value="none">없음 (무가중치)</option>
+            <option value="olympus">올림포스</option>
+            <option value="nord">노르드</option>
+            <option value="celt">켈트</option>
+        </select>
+        <select id="p3Myth">
+            <option value="nord" selected>노르드</option>
+            <option value="none">없음 (무가중치)</option>
+            <option value="olympus">올림포스</option>
+            <option value="egypt">이집트</option>
+            <option value="celt">켈트</option>
+        </select>
+        <select id="p4Myth">
+            <option value="celt" selected>켈트</option>
+            <option value="none">없음 (무가중치)</option>
+            <option value="olympus">올림포스</option>
+            <option value="egypt">이집트</option>
+            <option value="nord">노르드</option>
+        </select>
+    </div>
+
+    <details style="margin-top: 15px; background: #2c3e50; padding: 10px; border-radius: 4px; border: 1px solid #444;">
+        <summary style="cursor: pointer; font-weight: bold; color: #ecf0f1;">⚙️ 밸런스 파라미터 미세 조정 (클릭하여 열기)</summary>
+        
+        <div class="control-group" style="margin-top: 10px; padding: 10px; border: 1px solid #2ecc71; border-radius: 4px; background: #1a252f; flex-direction: column; align-items: flex-start;">
+    <div style="width: 100%; display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+        <span style="color: #2ecc71; font-weight: bold;">☘️ 켈트 능력 커스텀 (Advanced)</span>
+        <label style="font-size: 11px; color: #aaa; cursor: pointer;">
+            <input type="checkbox" id="celtMimicToggle" checked> 미믹(3단계) 활성
+        </label>
+    </div>
+
+    <div style="width: 100%; display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+        <div>
+            <label style="font-size: 11px; display:block; color: #ddd;">교환 횟수 (0~3단계):</label>
+            <input type="text" id="conf_celt_swap" value="0,1,2,3" style="width: 100%; box-sizing: border-box; background: #333; border: 1px solid #555; color: white; padding: 4px;">
+        </div>
+        <div>
+            <label style="font-size: 11px; display:block; color: #ddd;">변환(Any) 발동 레벨:</label>
+            <input type="text" id="conf_celt_lvl_convert" value="2" placeholder="예: 2 (2단계 이상 발동)" style="width: 100%; box-sizing: border-box; background: #333; border: 1px solid #27ae60; color: white; padding: 4px;">
+        </div>
+        <div style="grid-column: span 2;">
+            <label style="font-size: 11px; display:block; color: #ddd;">면제(Free) 발동 레벨:</label>
+            <input type="text" id="conf_celt_lvl_free" value="3" placeholder="예: 3 (3단계 이상 발동)" style="width: 100%; box-sizing: border-box; background: #333; border: 1px solid #27ae60; color: white; padding: 4px;">
+        </div>
+    </div>
+    <div style="font-size: 10px; color: #7f8c8d; margin-top: 5px;">
+        * 변환/면제: 입력한 <b>레벨 이상(≥)</b>일 때 능력이 활성화됩니다. (숫자 1개만 입력)
+    </div>
+</div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 10px;">
+            <div style="background: #34495e; padding: 10px; border-radius: 4px;">
+                <h3 style="margin: 0 0 5px 0; font-size: 14px; color: #00bfff;">☁️ 올림포스 (재료 할인)</h3>
+                <label style="font-size: 11px;">단계별 할인량 (0,1,2,3단계):</label>
+                <input type="text" id="conf_olympus_discount" value="0,2,5,12" style="width: 100%; box-sizing: border-box; background: #222; border: 1px solid #555; color: white;">
+            </div>
+            <div style="background: #34495e; padding: 10px; border-radius: 4px; margin-top: 10px; border: 1px solid #9b59b6;">
+    <h3 style="margin: 0 0 5px 0; font-size: 14px; color: #9b59b6;">❄️ 노르드 (수집 밸런스)</h3>
+    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 5px;">
+        <div>
+            <label style="font-size: 10px; color: #ccc;">합계 제한(Sum)</label>
+            <input type="text" id="conf_nord_sum" value="6,9,14" style="width: 100%; background: #222; border: 1px solid #555; color: white;">
+        </div>
+        <div>
+            <label style="font-size: 10px; color: #ccc;">카드 수(Count)</label>
+            <input type="text" id="conf_nord_count" value="2,2,3" style="width: 100%; background: #222; border: 1px solid #555; color: white;">
+        </div>
+        <div>
+            <label style="font-size: 10px; color: #ccc;">속도(Speed)</label>
+            <input type="text" id="conf_nord_speed" value="3.5,7.0,7.0,10.5" style="width: 100%; background: #222; border: 1px solid #555; color: white;">
+        </div>
+    </div>
+</div>
+
+            <div style="margin-top: 8px; border-top: 1px dashed #555; padding-top: 8px;">
+    <div style="font-size: 11px; color: #dcdcdc; margin-bottom: 4px;">✋ 단계별 핸드 제한 (기본: 8장)</div>
+    <div style="display: flex; gap: 10px;">
+        <div style="flex: 1;">
+            <label style="font-size: 10px; color: #9b59b6;">Lv2 (Silver) 이상</label>
+            <input type="number" id="conf_nord_hand_lv2" value="9" placeholder="예: 9" style="width: 100%; box-sizing: border-box; background: #222; border: 1px solid #9b59b6; color: white; text-align: center;">
+        </div>
+        <div style="flex: 1;">
+            <label style="font-size: 10px; color: #e1b12c;">Lv3 (Gold) 이상</label>
+            <input type="number" id="conf_nord_hand_lv3" value="10" placeholder="예: 10" style="width: 100%; box-sizing: border-box; background: #222; border: 1px solid #f1c40f; color: white; text-align: center;">
+        </div>
+    </div>
+    <div style="font-size: 9px; color: #7f8c8d; margin-top: 3px;">
+        * 해당 단계 도달 시 적용할 <b>최대 장수</b>를 입력하세요.
+    </div>
+</div>
+            
+            <div style="background: #34495e; padding: 10px; border-radius: 4px; grid-column: span 2; border: 1px dashed #f1c40f;">
+                <h3 style="margin: 0 0 10px 0; font-size: 14px; color: #f1c40f;">👁️ 이집트 (행동 비용 감소 상세 설정)</h3>
+                <table style="width: 100%; font-size: 11px; border-collapse: collapse; color: #eee;">
+                    <tr style="border-bottom: 1px solid #555;">
+                        <th style="text-align: left; padding: 4px; color: #aaa;">Level</th>
+                        <th style="padding: 4px;">예약(Reserve)</th>
+                        <th style="padding: 4px;">자원(Res)</th>
+                        <th style="padding: 4px;">축복(Bless)</th>
+                        <th style="padding: 4px;">제작(Craft)</th>
+                    </tr>
+                    <tr>
+                        <td style="font-weight: bold; padding: 4px; color: #f1c40f;">LV1</td>
+                        <td style="text-align: center;"><input type="number" id="conf_egypt_l1_r" value="1" style="width: 40px; text-align: center; background:#222; border:1px solid #555; color:white;"></td>
+                        <td style="text-align: center;"><input type="number" id="conf_egypt_l1_res" value="0" style="width: 40px; text-align: center; background:#222; border:1px solid #555; color:white;"></td>
+                        <td style="text-align: center;"><input type="number" id="conf_egypt_l1_bls" value="0" style="width: 40px; text-align: center; background:#222; border:1px solid #555; color:white;"></td>
+                        <td style="text-align: center;"><input type="number" id="conf_egypt_l1_art" value="0" style="width: 40px; text-align: center; background:#222; border:1px solid #555; color:white;"></td>
+                    </tr>
+                    <tr>
+                        <td style="font-weight: bold; padding: 4px; color: #f1c40f;">LV2</td>
+                        <td style="text-align: center;"><input type="number" id="conf_egypt_l2_r" value="0" style="width: 40px; text-align: center; background:#222; border:1px solid #555; color:white;"></td>
+                        <td style="text-align: center;"><input type="number" id="conf_egypt_l2_res" value="1" style="width: 40px; text-align: center; background:#222; border:1px solid #555; color:white;"></td>
+                        <td style="text-align: center;"><input type="number" id="conf_egypt_l2_bls" value="0" style="width: 40px; text-align: center; background:#222; border:1px solid #555; color:white;"></td>
+                        <td style="text-align: center;"><input type="number" id="conf_egypt_l2_art" value="0" style="width: 40px; text-align: center; background:#222; border:1px solid #555; color:white;"></td>
+                    </tr>
+                    <tr>
+                        <td style="font-weight: bold; padding: 4px; color: #f1c40f;">LV3</td>
+                        <td style="text-align: center;"><input type="number" id="conf_egypt_l3_r" value="0" style="width: 40px; text-align: center; background:#222; border:1px solid #555; color:white;"></td>
+                        <td style="text-align: center;"><input type="number" id="conf_egypt_l3_res" value="0" style="width: 40px; text-align: center; background:#222; border:1px solid #555; color:white;"></td>
+                        <td style="text-align: center;"><input type="number" id="conf_egypt_l3_bls" value="1" style="width: 40px; text-align: center; background:#222; border:1px solid #555; color:white;"></td>
+                        <td style="text-align: center;"><input type="number" id="conf_egypt_l3_art" value="1" style="width: 40px; text-align: center; background:#222; border:1px solid #555; color:white;"></td>
+                    </tr>
+                </table>
+                <div style="font-size: 11px; color: #aaa; margin-top: 5px; text-align: right;">* 각 레벨 도달 시 해당 수치만큼 비용이 <b>추가로</b> 감소합니다.</div>
+            </div>
+        </div>
+        
+        <div style="margin-top: 10px; text-align: right; font-size: 11px; color: #95a5a6;">
+        </div>
+    </details>
+    <div id="progressBar" style="width:0%; height:4px; background:#2ecc71; transition:width 0.2s; margin-top: 10px;"></div>
+</div>
+<div class="log-area" id="simLog" style="margin-bottom: 20px;">
+        [System] 준비 완료. 시뮬레이션을 시작하려면 버튼을 누르세요.
+    </div>
+
+    <div id="mainStats" style="font-size: 24px; font-weight: bold; color: #f1c40f; margin-bottom: 10px;"></div>
+    <div id="detailStats"></div>
+<script>
+// ==================================================================================
+// [Part 1] Configuration & Databases (002 Ver. Integrated)
+// ==================================================================================
+
+const CONFIG = {
+    MAX_TIME: 12,
+    MAX_DAYS: 5,
+    HAND_LIMIT: 8,
+    COST: { RES: 3, BLESS: 2, ART: 2, RESERVE: 1, SWAP: 1 }
+};
+
+// 002 버전의 밸런스 컨피그 적용
+// [Part 1] Config & Apply Function (기존 BALANCE_CONFIG, applyUserBalance 지우고 대체)
+// [Part 1] Config & Apply Function (수정됨)
+const BALANCE_CONFIG = {
+    EGYPT: [
+        { RESERVE: 1, RES: 0, BLESS: 0, ART: 0 },
+        { RESERVE: 0, RES: 1, BLESS: 0, ART: 0 },
+        { RESERVE: 0, RES: 0, BLESS: 1, ART: 1 }
+    ],
+    NORD: { LIMIT_SUM: [6, 9, 14], LIMIT_COUNT: [2, 2, 3], GATHER_SPEED: [3.5, 7.0, 7.0, 10.5] },
+    OLYMPUS: { DISCOUNT: [0, 2, 5, 12] },
+    CELT: { 
+        SWAP_LIMIT: [0, 1, 2, 3],
+        LVL_CONVERT: 2, // [변경] 배열 대신 숫자(최소 레벨)로 관리
+        LVL_FREE: 3     // [변경] 배열 대신 숫자(최소 레벨)로 관리
+    }
+};
+
+function applyUserBalance() {
+    try {
+        const getElVal = (id) => { const el = document.getElementById(id); return el && el.value.trim() !== "" ? (parseInt(el.value) || 0) : 0; };
+        const getArrVal = (id) => { const el = document.getElementById(id); return el && el.value.trim() !== "" ? el.value.split(',').map(v => Number(v.trim())).filter(n => !isNaN(n)) : []; };
+
+        const mimicToggle = document.getElementById('celtMimicToggle');
+        BALANCE_CONFIG.CELT.MIMIC_ENABLED = mimicToggle ? mimicToggle.checked : true;
+
+        const olympusVal = getArrVal('conf_olympus_discount');
+        if (olympusVal.length > 0) BALANCE_CONFIG.OLYMPUS.DISCOUNT = olympusVal;
+        
+        BALANCE_CONFIG.EGYPT = [
+            { RESERVE: getElVal('conf_egypt_l1_r'), RES: getElVal('conf_egypt_l1_res'), BLESS: getElVal('conf_egypt_l1_bls'), ART: getElVal('conf_egypt_l1_art') },
+            { RESERVE: getElVal('conf_egypt_l2_r'), RES: getElVal('conf_egypt_l2_res'), BLESS: getElVal('conf_egypt_l2_bls'), ART: getElVal('conf_egypt_l2_art') },
+            { RESERVE: getElVal('conf_egypt_l3_r'), RES: getElVal('conf_egypt_l3_res'), BLESS: getElVal('conf_egypt_l3_bls'), ART: getElVal('conf_egypt_l3_art') }
+        ];
+
+        const nordSum = getArrVal('conf_nord_sum'); if (nordSum.length > 0) BALANCE_CONFIG.NORD.LIMIT_SUM = nordSum;
+        const nordCount = getArrVal('conf_nord_count'); if (nordCount.length > 0) BALANCE_CONFIG.NORD.LIMIT_COUNT = nordCount;
+        const nordSpeed = getArrVal('conf_nord_speed'); if (nordSpeed.length > 0) BALANCE_CONFIG.NORD.GATHER_SPEED = nordSpeed;
+        const limitLv2 = document.getElementById('conf_nord_hand_lv2');
+        const limitLv3 = document.getElementById('conf_nord_hand_lv3');
+
+        // 값이 비어있으면 기본값(8) 적용
+        BALANCE_CONFIG.NORD.HAND_LIMIT_LV2 = (limitLv2 && limitLv2.value) ? parseInt(limitLv2.value) : 8;
+        BALANCE_CONFIG.NORD.HAND_LIMIT_LV3 = (limitLv3 && limitLv3.value) ? parseInt(limitLv3.value) : 8;
+
+        const celtSwap = getArrVal('conf_celt_swap'); if (celtSwap.length > 0) BALANCE_CONFIG.CELT.SWAP_LIMIT = celtSwap;
+        
+        // [Logic Change] 배열의 첫 번째 값을 최소 레벨(Threshold)로 사용
+        const convertArr = getArrVal('conf_celt_lvl_convert');
+        BALANCE_CONFIG.CELT.LVL_CONVERT = convertArr.length > 0 ? convertArr[0] : 999; 
+        
+        const freeArr = getArrVal('conf_celt_lvl_free');
+        BALANCE_CONFIG.CELT.LVL_FREE = freeArr.length > 0 ? freeArr[0] : 999;
+
+        console.log("[System] Balance Applied (Logic: Threshold >=).");
+    } catch (e) { console.error("Balance Apply Error:", e); }
+}
+const START_RULE = [
+    { res: 0, bless: 0, loki: 0, score: 0 }, // P1
+    { res: 0, bless: 0, loki: 0, score: 0 }, // P2
+    { res: 0, bless: 0, loki: 0, score: 0 }, // P3
+    { res: 0, bless: 0, loki: 0, score: 0 }  // P4
+];
+
+const RES_NAMES = { adamantite: "아다만타이트", mithril: "미스릴", dragonBone: "용의 뼈", starFragment: "별의 파편" };
+const TYPE_NAMES = { nord: "노르드", egypt: "이집트", olympus: "올림포스", celt: "켈트" };
+
+// 002 버전의 유물 데이터베이스 (그대로 유지)
+const ARTIFACT_DB = [
+    // Olympus (Bronze)
+    {name:"귀게스의 반지", type:"olympus", score:4, grade:"Bronze", cost:{adamantite:3, starFragment:3}},
+    {name:"헤르메스의 신발", type:"olympus", score:5, grade:"Bronze", cost:{dragonBone:3, mithril:4}},
+    {name:"크리셀라카토스", type:"olympus", score:6, grade:"Bronze", cost:{mithril:3, starFragment:5}},
+    // Olympus (Silver)
+    {name:"퀴네에", type:"olympus", score:10, grade:"Silver", cost:{dragonBone:2, mithril:4, starFragment:5}},
+    {name:"케스토스 히마스", type:"olympus", score:12, grade:"Silver", cost:{adamantite:4, starFragment:9}},
+    {name:"트라아이나", type:"olympus", score:12, grade:"Silver", cost:{adamantite:2, dragonBone:7, mithril:3}},
+    {name:"아폴론의 리라", type:"olympus", score:14, grade:"Silver", cost:{adamantite:6, dragonBone:3, starFragment:6}},
+    {name:"아이기스", type:"olympus", score:14, grade:"Silver", cost:{adamantite:7, dragonBone:8}},
+    {name:"큐피드의 화살", type:"olympus", score:16, grade:"Silver", cost:{adamantite:5, dragonBone:3, mithril:7, starFragment:2}},
+    {name:"아다만트", type:"olympus", score:16, grade:"Silver", cost:{adamantite:12, dragonBone:2, starFragment:3}},
+    // Olympus (Gold)
+    {name:"아스트라페", type:"olympus", score:24, grade:"Gold", cost:{adamantite:3, dragonBone:5, mithril:5, starFragment:12}},
+
+    // Egypt (Bronze)
+    {name:"마아트의 깃털", type:"egypt", score:4, grade:"Bronze", cost:{dragonBone:3, mithril:3}},
+    {name:"오시리스의 왕홀", type:"egypt", score:5, grade:"Bronze", cost:{adamantite:2, mithril:6}},
+    {name:"아누비스의 저울", type:"egypt", score:6, grade:"Bronze", cost:{adamantite:2, dragonBone:6}},
+    // Egypt (Silver)
+    {name:"세트의 전쟁 도끼", type:"egypt", score:10, grade:"Silver", cost:{adamantite:6, dragonBone:2, mithril:2}},
+    {name:"세크메트의 역병", type:"egypt", score:12, grade:"Silver", cost:{adamantite:3, dragonBone:6, mithril:3}},
+    {name:"토트의 서", type:"egypt", score:12, grade:"Silver", cost:{dragonBone:2, mithril:6, starFragment:5}},
+    {name:"아펩의 이빨", type:"egypt", score:14, grade:"Silver", cost:{dragonBone:7, mithril:6, starFragment:2}},
+    {name:"호루스의 눈", type:"egypt", score:14, grade:"Silver", cost:{adamantite:4, mithril:6, starFragment:5}},
+    {name:"크눔의 물레", type:"egypt", score:16, grade:"Silver", cost:{adamantite:4, dragonBone:6, mithril:2, starFragment:5}},
+    {name:"만야르트", type:"egypt", score:16, grade:"Silver", cost:{dragonBone:5, mithril:4, starFragment:8}},
+    // Egypt (Gold)
+    {name:"누의 항아리", type:"egypt", score:24, grade:"Gold", cost:{adamantite:3, dragonBone:14, mithril:2, starFragment:6}},
+
+    // Nord (Bronze)
+    {name:"드라우프니르", type:"nord", score:4, grade:"Bronze", cost:{dragonBone:4, mithril:2}},
+    {name:"브리싱가멘", type:"nord", score:5, grade:"Bronze", cost:{mithril:3, starFragment:4}},
+    {name:"메긴요르드", type:"nord", score:6, grade:"Bronze", cost:{adamantite:9}},
+    // Nord (Silver)
+    {name:"그람", type:"nord", score:10, grade:"Silver", cost:{dragonBone:3, mithril:5, starFragment:3}},
+    {name:"스발린", type:"nord", score:12, grade:"Silver", cost:{adamantite:5, mithril:8}},
+    {name:"겔라르 호른", type:"nord", score:12, grade:"Silver", cost:{dragonBone:5, mithril:5, starFragment:3}},
+    {name:"다인슬레이프", type:"nord", score:14, grade:"Silver", cost:{adamantite:5, mithril:3, starFragment:7}},
+    {name:"궁니르", type:"nord", score:14, grade:"Silver", cost:{adamantite:6, dragonBone:2, starFragment:6}},
+    {name:"글레이프니르", type:"nord", score:16, grade:"Silver", cost:{adamantite:3, dragonBone:5, starFragment:8}},
+    {name:"묠니르", type:"nord", score:16, grade:"Silver", cost:{adamantite:6, mithril:7, starFragment:4}},
+    // Nord (Gold)
+    {name:"레바테인", type:"nord", score:24, grade:"Gold", cost:{adamantite:11, dragonBone:4, mithril:5, starFragment:6}},
+
+    // Celt (Bronze)
+    {name:"오한", type:"celt", score:4, grade:"Bronze", cost:{adamantite:2, starFragment:4}},
+    {name:"누아다의 은팔", type:"celt", score:5, grade:"Bronze", cost:{dragonBone:4, starFragment:2}},
+    {name:"다그다의 솥", type:"celt", score:6, grade:"Bronze", cost:{dragonBone:4, starFragment:4}},
+    // Celt (Silver)
+    {name:"마나난의 황금 갑옷", type:"celt", score:10, grade:"Silver", cost:{adamantite:7, starFragment:4}},
+    {name:"칼라드볼그", type:"celt", score:12, grade:"Silver", cost:{adamantite:5, mithril:5, starFragment:2}},
+    {name:"페르디아의 뿔가죽", type:"celt", score:12, grade:"Silver", cost:{adamantite:5, dragonBone:6, mithril:2}},
+    {name:"게 볼그", type:"celt", score:14, grade:"Silver", cost:{adamantite:7, dragonBone:4, mithril:4}},
+    {name:"게 다러그", type:"celt", score:14, grade:"Silver", cost:{dragonBone:8, starFragment:7}},
+    {name:"프라가라흐", type:"celt", score:16, grade:"Silver", cost:{adamantite:4, dragonBone:4, mithril:8}},
+    {name:"게 비어", type:"celt", score:16, grade:"Silver", cost:{adamantite:4, dragonBone:6, mithril:4, starFragment:2}},
+    // Celt (Gold)
+    {name:"브류나크", type:"celt", score:24, grade:"Gold", cost:{dragonBone:5, mithril:17, starFragment:3}}
+];
+
+// [Update] 로키 DB (Source: 로키_데이터 테이블 v1.9.xlsx)
+const LOKI_DB = [
+    {id:1,name:"구부러진 시곗바늘",desc:"시간 -1H",type:"active_time", count:4},
+    {id:2,name:"망각의 주판",desc:"유물 교환(보관<->시장)",type:"active_swap", count:1},
+    {id:3,name:"불완전한 축복",desc:"노르드 / 켈트",type:"bless_split",tags:['nord','celt'], count:1},
+    {id:4,name:"불완전한 축복",desc:"노르드 / 이집트",type:"bless_split",tags:['nord','egypt'], count:1},
+    {id:5,name:"불완전한 축복",desc:"노르드 / 올림포스",type:"bless_split",tags:['nord','olympus'], count:1},
+    {id:6,name:"불완전한 축복",desc:"올림포스 / 이집트",type:"bless_split",tags:['olympus','egypt'], count:1},
+    {id:7,name:"불완전한 축복",desc:"이집트 / 켈트",type:"bless_split",tags:['egypt','celt'], count:1},
+    {id:8,name:"불완전한 축복",desc:"올림포스 / 켈트",type:"bless_split",tags:['olympus','celt'], count:1},
+    {id:9,name:"혼돈의 채석망치",desc:"시장 자원 리셋",type:"active_reset", count:1},
+    {id:10,name:"부서진 회중시계",desc:"유물 제작 시간 0",type:"passive_free", count:1},
+    {id:11,name:"계승자의 문장",desc:"즉시 +2점",type:"instant_score", count:4},
+    {id:12,name:"미래 일기",desc:"덱 위 3장 확인, 1장 획득",type:"active_peek", count:1},
+    {id:13,name:"검은 주사위",desc:"손패 2장 버리고 2장 드로우",type:"active_draw", count:1},
+    {id:14,name:"불안정 융합석",desc:"재료(OR)",type:"res_split",mode:"OR",options:[{type:'starFragment',val:4},{type:'dragonBone',val:4}], count:1},
+    {id:15,name:"불안정 융합석",desc:"재료(OR)",type:"res_split",mode:"OR",options:[{type:'starFragment',val:4},{type:'mithril',val:4}], count:1},
+    {id:16,name:"불안정 융합석",desc:"재료(OR)",type:"res_split",mode:"OR",options:[{type:'starFragment',val:4},{type:'adamantite',val:4}], count:1},
+    {id:17,name:"불안정 융합석",desc:"재료(OR)",type:"res_split",mode:"OR",options:[{type:'adamantite',val:4},{type:'dragonBone',val:4}], count:1},
+    {id:18,name:"불안정 융합석",desc:"재료(OR)",type:"res_split",mode:"OR",options:[{type:'adamantite',val:4},{type:'mithril',val:4}], count:1},
+    {id:19,name:"불안정 융합석",desc:"재료(OR)",type:"res_split",mode:"OR",options:[{type:'dragonBone',val:4},{type:'mithril',val:4}], count:1},
+    {id:20,name:"불안정 융합석",desc:"재료(AND)",type:"res_split",mode:"AND",options:[{type:'adamantite',val:2},{type:'dragonBone',val:2}], count:1},
+    {id:21,name:"불안정 융합석",desc:"재료(AND)",type:"res_split",mode:"AND",options:[{type:'adamantite',val:2},{type:'mithril',val:2}], count:1},
+    {id:22,name:"불안정 융합석",desc:"재료(AND)",type:"res_split",mode:"AND",options:[{type:'dragonBone',val:2},{type:'mithril',val:2}], count:1},
+    {id:23,name:"불안정 융합석",desc:"재료(AND)",type:"res_split",mode:"AND",options:[{type:'dragonBone',val:2},{type:'starFragment',val:2}], count:1},
+    {id:24,name:"불안정 융합석",desc:"재료(AND)",type:"res_split",mode:"AND",options:[{type:'starFragment',val:2},{type:'mithril',val:2}], count:1},
+    {id:25,name:"불안정 융합석",desc:"재료(AND)",type:"res_split",mode:"AND",options:[{type:'adamantite',val:2},{type:'starFragment',val:2}], count:1},
+    {id:26,name:"파괴된 성배",desc:"시장 축복 리셋",type:"active_reset_bless", count:1}
+];
+class Card {
+    constructor(cat, type, val = null, extra = null) {
+        this.cat = cat;
+        this.type = type; 
+        this.val = val; 
+        this.extra = extra;
+        this.id = Math.random().toString(36).substr(2, 9);
+    }
+}
+
+class Deck {
+    constructor(cat) {
+        this.cat = cat;
+        this.cards = [];
+        this.discardPile = [];
+        this.init();
+    }
+
+    init() {
+        if (this.cat === 'resource') {
+            const types = Object.keys(RES_NAMES);
+            const vals = [2, 3, 4, 5, 6, 7];
+            types.forEach(t => vals.forEach(v => {
+                for (let i = 0; i < 3; i++) this.cards.push(new Card('resource', t, v));
+            }));
+        } else if (this.cat === 'blessing') {
+            const types = Object.keys(TYPE_NAMES);
+            types.forEach(t => {
+                for (let i = 0; i < 8; i++) this.cards.push(new Card('blessing', t));
+            });
+        } else if (this.cat === 'artifact') {
+            ARTIFACT_DB.forEach(art => this.cards.push({ ...art })); 
+        } else if (this.cat === 'loki') {
+            LOKI_DB.forEach(def => {
+                for(let i=0; i<def.count; i++) {
+                    this.cards.push(new Card('loki', 'loki', null, def));
+                }
+            });
+        }
+        this.shuffle();
+    }
+
+    shuffle() { this.cards.sort(() => Math.random() - 0.5); }
+
+    draw() {
+        if (this.cards.length === 0) {
+            if (this.cat === 'loki' || this.discardPile.length === 0) return null;
+            this.cards = [...this.discardPile];
+            this.discardPile = [];
+            this.shuffle();
+        }
+        return this.cards.pop();
+    }
+
+    peek(count) { return this.cards.slice(-count).reverse(); } // 미래일기용
+
+    discard(card) { this.discardPile.push(card); }
+    getCount() { return this.cards.length; }
+}
+
+class Player {
+    constructor(id) {
+        this.id = id;
+        this.hand = [];
+        this.reserved = [];
+        this.artifacts = [];
+        this.score = 0;
+        this.time = 0;
+        this.stackOrder = 0;
+        this.targetMyth = null; 
+        this.celtConvertCount = 0;
+        this.celtMimicMode = null;
+        this.aiTargetIdx = null;
+        this.olympusDiscount = { type: null, amount: 0 };
+        
+        // [Data Mining] 데이터 분석용 필드
+        this.dailyScore = [-1, -1, -1, -1, -1]; 
+        this.history = []; 
+        this.totalTurns = 0; 
+        this.lvl3Turn = { olympus: -1, egypt: -1, nord: -1, celt: -1 };
+        this.usedLokiIds = []; 
+
+        // [Update] 은총(Grace) 메트릭 추가
+        this.metrics = { 
+            savedRes: 0, wastedCards: 0, celtSwaps: 0,
+            resAcquired: 0, resConsumed: 0, lokiUsed: 0,
+            graceCount: 0,  // 은총 획득 횟수
+            graceScore: 0   // 은총으로 얻은 추가 점수
+        };
+        this.milestones = {}; 
+    }
+
+    getHandCount() {
+        return this.hand.filter(c => c.cat !== 'loki').length;
+    }
+
+    recordLokiUse(card) {
+        this.metrics.lokiUsed++;
+        if (card && card.extra && card.extra.id) {
+            this.usedLokiIds.push(card.extra.id);
+        }
+    }
+}
+
+// ==========================================
+// [Part 2] Game Engine (Core Logic - UI Free)
+// ==========================================
+
+class Game {
+    constructor() {
+        this.isInitialized = false;
+        this.day = 1;
+        this.isGameEnded = false;
+        this.craftOrder = 0;
+        this.players = [];
+        this.pIdx = 0;
+    }
+
+    init(mythAssignments) {
+        this.day = 1;
+        this.isGameEnded = false;
+        this.craftOrder = 0;
+        
+        this.players = [new Player(1), new Player(2), new Player(3), new Player(4)];
+        this.players.forEach((p, i) => {
+            p.targetMyth = mythAssignments ? mythAssignments[i] : ['olympus', 'egypt', 'nord', 'celt'][i];
+            const rule = START_RULE[i];
+            p.score = rule.score;
+            p.stackOrder = 3 - i; 
+        });
+
+        this.deckRes = new Deck('resource');
+        this.deckBless = new Deck('blessing');
+        this.deckArt = new Deck('artifact');
+        this.deckLoki = new Deck('loki');
+
+        this.fieldRes = [];
+        this.fieldBless = [];
+        this.fieldArt = [];
+
+        this.fill('resource', 6);
+        this.fill('blessing', 4);
+        this.fill('artifact', 7);
+
+        this.players.forEach((p, i) => {
+            const rule = START_RULE[i];
+            for(let k=0; k<rule.res; k++) { const c = this.deckRes.draw(); if(c) p.hand.push(c); }
+            for(let k=0; k<rule.bless; k++) { const c = this.deckBless.draw(); if(c) p.hand.push(c); }
+            for(let k=0; k<rule.loki; k++) { const c = this.deckLoki.draw(); if(c) p.hand.push(c); }
+        });
+
+        this.pIdx = 0;
+        this.isInitialized = true;
+    }
+
+    get cp() { return this.players[this.pIdx]; }
+
+    fill(cat, max) {
+        const field = cat === 'resource' ? this.fieldRes : (cat === 'blessing' ? this.fieldBless : this.fieldArt);
+        const deck = cat === 'resource' ? this.deckRes : (cat === 'blessing' ? this.deckBless : this.deckArt);
+        while(field.length < max) {
+            const c = deck.draw();
+            if(c) field.push(c);
+            else break;
+        }
+    }
+
+    getArtLevel(type) {
+        const p = this.cp;
+        let count = p.artifacts.filter(a => a.type === type).length;
+        const celtCount = p.artifacts.filter(a => a.type === 'celt').length;
+        // 켈트 3단계 미믹 적용
+        if (type !== 'celt' && celtCount >= 3 && p.celtMimicMode === type) count += 1;
+        // 켈트 자신은 미믹 효과 못 받음 (이미 3장이므로 의미 없기도 함)
+        if (type === 'celt' && celtCount >= 3 && p.celtMimicMode !== null) return 0;
+        return count;
+    }
+
+    getCost(action) {
+        let cost = CONFIG.COST[action];
+        const egyptLv = this.getArtLevel('egypt');
+        
+        // 이집트 할인 적용 (누적 방식)
+        let discount = 0;
+        const maxLevel = Math.min(egyptLv, 3);
+        
+        for (let i = 0; i < maxLevel; i++) {
+            // BALANCE_CONFIG가 배열인지 확인하고 안전하게 접근
+            if (Array.isArray(BALANCE_CONFIG.EGYPT)) {
+                const levelConfig = BALANCE_CONFIG.EGYPT[i];
+                if (levelConfig) {
+                    if (action === 'RESERVE') discount += levelConfig.RESERVE;
+                    else if (action === 'RES') discount += levelConfig.RES;
+                    else if (action === 'BLESS') discount += levelConfig.BLESS;
+                    else if (action === 'ART') discount += levelConfig.ART;
+                }
+            } else {
+                // 구버전 호환용 (혹시 모를 에러 방지)
+                if (action === 'RESERVE' && i === 0) discount += 1;
+                if (action === 'RES' && i === 1) discount += 1;
+                if ((action === 'BLESS' || action === 'ART') && i === 2) discount += 1;
+            }
+        }
+        
+        cost -= discount;
+        return Math.max(0, cost);
+    }
+
+    consumeTime(amount) {
+        const p = this.cp;
+        const targetTime = p.time + amount;
+        let maxStack = -1;
+        this.players.forEach(other => {
+            if (other.id !== p.id && other.time === targetTime) {
+                if (other.stackOrder > maxStack) maxStack = other.stackOrder;
+            }
+        });
+        p.time = targetTime;
+        p.stackOrder = maxStack + 1;
+        this.determineNextTurn();
+    }
+
+    determineNextTurn() {
+        if (this.isGameEnded) return;
+        if (this.players.every(p => p.time >= CONFIG.MAX_TIME)) { this.processDayEnd(); return; }
+        
+        let candidates = this.players.filter(p => p.time < CONFIG.MAX_TIME);
+        if (candidates.length === 0) { this.processDayEnd(); return; }
+
+        candidates.sort((a, b) => {
+            if (a.time !== b.time) return a.time - b.time;
+            return b.stackOrder - a.stackOrder;
+        });
+
+        const nextPlayer = candidates[0];
+        if (this.cp.id !== nextPlayer.id) {
+            this.pIdx = this.players.indexOf(nextPlayer);
+            this.cp.celtConvertCount = 0; // 턴 변경 시 켈트 카운트 리셋
+        }
+    }
+
+   processDayEnd() {
+        this.players.forEach(p => {
+            // 1. 점수 기록
+            if (this.day <= 5) p.dailyScore[this.day - 1] = p.score;
+            
+            // 2. [추가됨] 유물 상태 스냅샷 기록 (엑셀 분석용)
+            const counts = { olympus: 0, egypt: 0, nord: 0, celt: 0 };
+            p.artifacts.forEach(a => { if(counts[a.type] !== undefined) counts[a.type]++; });
+            
+            p.history.push({
+                day: this.day,
+                score: p.score,
+                olympus: counts.olympus,
+                egypt: counts.egypt,
+                nord: counts.nord,
+                celt: counts.celt
+            });
+        });
+
+        if (this.day >= CONFIG.MAX_DAYS) { this.endGame(); return; }
+        
+        this.processNightInstant();
+        this.day++;
+        
+        this.fieldRes.forEach(c => this.deckRes.discard(c)); this.fieldRes = [];
+        this.fieldBless.forEach(c => this.deckBless.discard(c)); this.fieldBless = [];
+        this.fill('resource', 6); this.fill('blessing', 4);
+
+        this.players.forEach(p => { p.time = Math.max(0, p.time - CONFIG.MAX_TIME); });
+
+        if (this.day > CONFIG.MAX_DAYS) this.endGame();
+        else this.determineNextTurn();
+    }
+    processNightInstant() {
+        let offers = [];
+        for(let i=0; i<6; i++) offers.push(this.deckLoki.draw());
+        let selections = {};
+        this.players.forEach(p => { selections[p.id] = Math.floor(Math.random() * 6); });
+        let counts = {};
+        Object.values(selections).forEach(slot => { counts[slot] = (counts[slot] || 0) + 1; });
+
+        this.players.forEach(p => {
+            const choice = selections[p.id];
+            if (counts[choice] === 1 && offers[choice]) {
+                const item = offers[choice];
+                if (item.extra.type === 'instant_score') p.score += 2;
+                else p.hand.push(item);
+            }
+        });
+    }
+
+    endGame() {
+        if (this.isGameEnded) return;
+        this.isGameEnded = true;
+        this.players.forEach(p => {
+            const counts = { olympus: 0, egypt: 0, nord: 0, celt: 0 };
+            p.artifacts.forEach(art => { if(counts[art.type] !== undefined) counts[art.type]++; });
+            
+            // 4종 통합 보너스
+            if(counts.olympus > 0 && counts.egypt > 0 && counts.nord > 0 && counts.celt > 0) p.score += 5;
+            
+            // 신화 전문화 보너스
+            for(const [type, count] of Object.entries(counts)) {
+                if(count >= 4) p.score += (count - 3) * 2;
+            }
+        });
+    }
+}
+// [신규 추가: Game 클래스 메서드]
+// ==================================================================================
+// [Part 3] AI Brain (Final Integrated v10.5 - All Fixes Included)
+// ==================================================================================
+/* 포함된 수정 사항:
+   1. 켈트: 레벨 판단 로직 (>=) 수정 및 자동 태세 전환
+   2. 은총(Grace): 정확한 자원 지불 시 점수 가산 (+2/3/4)
+   3. 로키: 미래일기 덱 조작 버그 수정, 망각의 주판 전략적 사용 추가
+   4. 노르드: 자원 뭉쳐 먹기 (2~3장) 로직 복구
+   5. 전략: aiFindBestPlan 누락 복구
+*/
+
+// 0. 핸드 제한 유동적 계산
+Game.prototype.getCurrentHandLimit = function() {
+    const ai = this.cp;
+    const nordLv = this.getArtLevel('nord');
+    const defaultLimit = CONFIG.HAND_LIMIT;
+
+    if (nordLv >= 3) return BALANCE_CONFIG.NORD.HAND_LIMIT_LV3 || BALANCE_CONFIG.NORD.HAND_LIMIT_LV2 || defaultLimit;
+    if (nordLv >= 2) return BALANCE_CONFIG.NORD.HAND_LIMIT_LV2 || defaultLimit;
+    return defaultLimit;
+};
+
+// 1. [태세 전환] 켈트 3단계 능력 자동 스위칭
+Game.prototype.aiAutoSwitchCeltMode = function(plan) {
+    const cachedSetting = BALANCE_CONFIG.CELT.MIMIC_ENABLED;
+    const isMimicEnabled = (cachedSetting !== undefined) ? cachedSetting : true;
+
+    if (!isMimicEnabled) {
+        if (this.cp.celtMimicMode !== null) this.cp.celtMimicMode = null;
+        return;
+    }
+
+    const ai = this.cp;
+    const realCeltCount = ai.artifacts.filter(a => a.type === 'celt').length;
+    if (realCeltCount < 3) return;
+
+    let targetMode = null; 
+    if (plan && plan.preferredMode) {
+        targetMode = plan.preferredMode === 'celt' ? null : plan.preferredMode;
+    } else {
+        if (plan && plan.action === 'GATHER' && ai.getHandCount() <= 4) targetMode = 'nord';
+        else if (ai.time >= 9) targetMode = 'egypt';
+    }
+
+    if (ai.celtMimicMode !== targetMode) {
+        ai.celtMimicMode = targetMode;
+    }
+};
+
+// 2. [가치 판단] 유물 가치 및 비용 계산 (Core Logic - Fixed)
+Game.prototype.aiCalculateTargetValue = function(art, isReserved) {
+    const ai = this.cp;
+    
+    // [Safety] 설정값 로드
+    const cachedSetting = BALANCE_CONFIG.CELT.MIMIC_ENABLED;
+    const mimicEnabled = (cachedSetting !== undefined) ? cachedSetting : true;
+
+    const realCeltCount = ai.artifacts.filter(a => a.type === 'celt').length;
+    const canMimic = (realCeltCount >= 3 && mimicEnabled);
+
+    const myRes = { adamantite:0, mithril:0, dragonBone:0, starFragment:0 };
+    let totalHandCount = 0;
+    ai.hand.forEach(c => {
+        totalHandCount++;
+        if (c.cat === 'resource') myRes[c.type] = (myRes[c.type]||0) + c.val;
+        else if (c.cat === 'loki' && c.extra.type === 'res_split') {
+            myRes[c.extra.options[0].type] = (myRes[c.extra.options[0].type]||0) + 4;
+        }
+    });
+
+    const calculateScenario = (mode) => {
+        let simOlympusLv, simCeltLv;
+        if (!canMimic) { simOlympusLv = this.getArtLevel('olympus'); simCeltLv = realCeltCount; } 
+        else {
+            const realOlympus = ai.artifacts.filter(a => a.type === 'olympus').length;
+            if (mode === 'olympus') { simOlympusLv = Math.max(realOlympus, 3); simCeltLv = 0; }
+            else if (mode === 'celt') { simOlympusLv = realOlympus; simCeltLv = 3; }
+            else { simOlympusLv = realOlympus; simCeltLv = realCeltCount; }
+        }
+
+        let tempCost = { ...art.cost };
+        let discountType = null;
+        if (simOlympusLv > 0) {
+            const amt = BALANCE_CONFIG.OLYMPUS.DISCOUNT[Math.min(simOlympusLv, 3)];
+            let maxSaved = -1;
+            for(let t in tempCost) {
+                if(tempCost[t] > 0) {
+                    let saved = Math.min(tempCost[t], amt);
+                    if(saved > maxSaved) { maxSaved = saved; discountType = t; }
+                }
+            }
+            if(discountType) tempCost[discountType] = Math.max(0, tempCost[discountType] - amt);
+        }
+
+        let availableSwaps = BALANCE_CONFIG.CELT.SWAP_LIMIT[Math.min(simCeltLv, 3)] - ai.celtConvertCount;
+        let needsSwap = false;
+        let tempHandCount = totalHandCount;
+        let missing = 0;
+
+        for(let t in tempCost) {
+            let need = Math.max(0, tempCost[t] - (myRes[t]||0));
+            if (need > 0 && availableSwaps > 0) {
+                const cardsNeeded = Math.ceil(need / 4);
+                if (tempHandCount >= cardsNeeded && availableSwaps >= cardsNeeded) {
+                    availableSwaps -= cardsNeeded; tempHandCount -= cardsNeeded; need = 0; needsSwap = true;
+                }
+            }
+            missing += need;
+        }
+        return { missing, needsSwap, discountType, mode };
+    };
+
+    const currentMode = canMimic ? (ai.celtMimicMode || 'celt') : 'celt';
+    let bestScenario = calculateScenario(currentMode); 
+    
+    if (canMimic) {
+        const sO = calculateScenario('olympus');
+        const sC = calculateScenario('celt');
+        if (sO.missing <= 0 && sC.missing > 0) bestScenario = sO;
+        else if (sC.missing <= 0 && sO.missing > 0) bestScenario = sC;
+        else if (sO.missing <= 0 && sC.missing <= 0) bestScenario = sO; 
+        else bestScenario = (sO.missing < sC.missing) ? sO : sC;
+    }
+
+    let action = bestScenario.missing <= 0 ? 'CRAFT' : 'GATHER';
+    
+    // [Update] 은총(Grace) 점수 기대값 반영
+    let graceBonus = 0;
+    if (art.grade === 'Gold') graceBonus = 4;
+    else if (art.grade === 'Silver') graceBonus = 3;
+    else graceBonus = 2; // Bronze
+
+    let net = (art.score + graceBonus) * 10;
+
+    const currentMythCount = ai.artifacts.filter(a => a.type === ai.targetMyth).length;
+    if (ai.targetMyth && art.type === ai.targetMyth && currentMythCount < 3) {
+        net += 100;
+    }
+
+    if (action === 'CRAFT') {
+        net += 5000;
+        if (isReserved) net += 2000;
+        if (bestScenario.needsSwap) net += 50; 
+    } else {
+        net += Math.max(0, 500 - bestScenario.missing * 5);
+        
+        let effNord;
+        if (!canMimic) {
+            effNord = this.getArtLevel('nord');
+        } else {
+            const isNordMode = bestScenario.mode === 'nord' || ai.celtMimicMode === 'nord';
+            const canSwitchToNord = bestScenario.mode === 'celt' || bestScenario.mode === null;
+            if (isNordMode || canSwitchToNord) effNord = ai.artifacts.filter(a => a.type === 'nord').length + 1;
+            else effNord = ai.artifacts.filter(a => a.type === 'nord').length;
+        }
+
+        let speed = BALANCE_CONFIG.NORD.GATHER_SPEED[Math.min(effNord, 3)];
+        net -= (Math.ceil(bestScenario.missing / speed) * 10);
+    }
+
+    let timeCost = CONFIG.COST[action];
+    let effEgy = !canMimic ? this.getArtLevel('egypt') : (bestScenario.mode==='egypt'||ai.celtMimicMode==='egypt' ? Math.max(ai.artifacts.filter(a=>a.type==='egypt').length,3) : ai.artifacts.filter(a=>a.type==='egypt').length);
+    let egyDisc = 0;
+    for(let i=0; i<Math.min(effEgy, 3); i++) {
+        if (Array.isArray(BALANCE_CONFIG.EGYPT) && BALANCE_CONFIG.EGYPT[i]) {
+             const c = BALANCE_CONFIG.EGYPT[i];
+             egyDisc += (action==='RESERVE'?c.RESERVE : action==='GATHER'?c.RES : action==='CRAFT'?c.ART : 0);
+        }
+    }
+    timeCost = Math.max(0, timeCost - egyDisc);
+    if (timeCost <= 0) net += 150; else if (timeCost < CONFIG.COST[action]) net += 50;
+
+    // [Fix] 켈트 로직 수정: .includes() -> >= 비교 연산
+    let hasBless = ai.hand.some(c => (c.cat === 'blessing' && c.type === art.type) || (c.cat === 'loki' && c.extra.type === 'bless_split' && c.extra.tags.includes(art.type)));
+    
+    const allowConvert = realCeltCount >= BALANCE_CONFIG.CELT.LVL_CONVERT;
+    const allowFree = realCeltCount >= BALANCE_CONFIG.CELT.LVL_FREE;
+
+    if (!hasBless && allowConvert) {
+        hasBless = ai.hand.some(c => c.cat === 'blessing' || (c.cat === 'loki' && c.extra.type === 'bless_split'));
+    }
+    let needBless = !hasBless && !allowFree;
+    if (needBless) net -= 5000;
+
+    let finalPreferredMode = bestScenario.mode;
+    if (action === 'GATHER' && canMimic) {
+        let nordIdx = Math.max(0, Math.min(this.getArtLevel('nord')+1, 3)-1);
+        let nordCap = BALANCE_CONFIG.NORD.LIMIT_COUNT[Math.min(nordIdx, 2)];
+        let rawMissing = 0; for(let t in art.cost) if(art.cost[t] > (myRes[t]||0)) rawMissing += (art.cost[t]-(myRes[t]||0));
+        
+        if (bestScenario.needsSwap) {
+             if (ai.getHandCount() <= 4 && rawMissing >= 2 && nordCap >= 2) { finalPreferredMode = 'nord'; net += 150; }
+             else { finalPreferredMode = 'celt'; net += 200; }
+        } else if (rawMissing >= 1 && nordCap >= 2 && ai.getHandCount() <= 6) { 
+            finalPreferredMode = 'nord'; net += 150; 
+        } else if (bestScenario.missing === 1 && finalPreferredMode !== 'celt') { 
+            finalPreferredMode = 'egypt'; net += 40; 
+        }
+    }
+
+    return { art, netValue: net, action, fromReserve: isReserved, discountType: bestScenario.discountType, targetIdx: -1, needBless, missingVal: bestScenario.missing, preferredMode: finalPreferredMode };
+};
+
+// 3. [전술 실행] 로키 카드 사용 (v10.5 Safe Logic)
+Game.prototype.aiPlayLokiTactics = function() {
+    const ai = this.cp;
+    
+    // 1. 계승자의 문장
+    const crestIdx = ai.hand.findIndex(c => c.cat === 'loki' && c.extra.type === 'instant_score');
+    if (crestIdx !== -1) { 
+        ai.score += 2; 
+        const card = ai.hand[crestIdx];
+        ai.hand.splice(crestIdx, 1); 
+        ai.recordLokiUse(card); 
+        return true; 
+    }
+
+    // 2. 구부러진 시곗바늘
+    const clockIdx = ai.hand.findIndex(c => c.cat === 'loki' && c.extra.type === 'active_time');
+    if (clockIdx !== -1) {
+        if (ai.time >= 9 || (ai.score < 10 && ai.time >= 7)) {
+            ai.time = Math.max(0, ai.time - 1); 
+            const card = ai.hand[clockIdx];
+            ai.hand.splice(clockIdx, 1); 
+            ai.recordLokiUse(card); 
+            return true;
+        }
+    }
+
+    // 3. 검은 주사위
+    const diceIdx = ai.hand.findIndex(c => c.cat === 'loki' && c.extra.type === 'active_draw');
+    if (diceIdx !== -1) {
+        const junkIndices = ai.hand.map((c, i) => (c.cat === 'resource' && c.val <= 3) ? i : -1).filter(i => i !== -1);
+        if (junkIndices.length >= 2) {
+            let targets = [diceIdx, junkIndices[0], junkIndices[1]];
+            targets = [...new Set(targets)];
+            targets.sort((a, b) => b - a); 
+            const lokiCard = ai.hand[diceIdx]; 
+            targets.forEach(idx => ai.hand.splice(idx, 1));
+            for(let k=0; k<2; k++) { 
+                const newCard = this.deckRes.draw(); 
+                if(newCard) { ai.hand.push(newCard); ai.metrics.resAcquired += newCard.val; }
+            }
+            ai.recordLokiUse(lokiCard); 
+            this.consumeTime(1); 
+            return true;
+        }
+    }
+
+    // 4. 미래 일기 (수정됨: 안전한 draw 사용)
+    const diaryIdx = ai.hand.findIndex(c => c.cat === 'loki' && c.extra.type === 'active_peek');
+    if (diaryIdx !== -1 && ai.reserved.length < 1) { 
+        const candidates = [];
+        for(let k=0; k<3; k++) { 
+            const c = this.deckArt.draw(); 
+            if(c) candidates.push(c); 
+        }
+        if (candidates.length > 0) {
+            candidates.sort((a, b) => b.score - a.score);
+            const selected = candidates[0];
+            ai.reserved.push(selected);
+            for(let k=1; k<candidates.length; k++) this.deckArt.discard(candidates[k]);
+            
+            const card = ai.hand[diaryIdx];
+            ai.hand.splice(diaryIdx, 1);
+            ai.recordLokiUse(card); 
+            this.consumeTime(1);
+            return true;
+        }
+    }
+
+    // 5. 혼돈의 채석망치
+    const hammerIdx = ai.hand.findIndex(c => c.cat === 'loki' && c.extra.type === 'active_reset');
+    if (hammerIdx !== -1) {
+        const fieldSum = this.fieldRes.reduce((a, b) => a + b.val, 0);
+        const fieldAvg = this.fieldRes.length > 0 ? fieldSum / this.fieldRes.length : 0;
+        const hasHighValue = this.fieldRes.some(c => c.val >= 6);
+
+        if (fieldAvg <= 3.5 && !hasHighValue) {
+            this.fieldRes.forEach(c => this.deckRes.discard(c));
+            this.fieldRes = [];
+            this.fill('resource', 6);
+            const card = ai.hand[hammerIdx];
+            ai.hand.splice(hammerIdx, 1);
+            ai.recordLokiUse(card); 
+            this.consumeTime(1);
+            return true;
+        }
+    }
+    return false;
+};
+
+// 4. [전략 수립] 최적 계획 찾기 (망각의 주판 로직 포함 - Fixed)
+Game.prototype.aiFindBestPlan = function() {
+    const ai = this.cp;
+    let bestScore = -Infinity;
+    let bestPlan = null;
+
+    // 1) 망각의 주판
+    const abacusIdx = ai.hand.findIndex(c => c.cat === 'loki' && c.extra.type === 'active_swap');
+    if (abacusIdx !== -1 && ai.reserved.length > 0 && this.fieldArt.length > 0) {
+        let worstRes = { score: 999, idx: -1 };
+        ai.reserved.forEach((art, i) => { if(art.score < worstRes.score) worstRes = {score: art.score, idx: i}; });
+        let bestMkt = { score: -1, idx: -1 };
+        this.fieldArt.forEach((art, i) => { if(art.score > bestMkt.score) bestMkt = {score: art.score, idx: i}; });
+        
+        if (bestMkt.score - worstRes.score >= 6) {
+            return { action: 'SWAP_ARTIFACT', handIdx: abacusIdx, reserveIdx: worstRes.idx, marketIdx: bestMkt.idx };
+        }
+    }
+
+    // 2) 예약 유물
+    ai.reserved.forEach((art, idx) => {
+        const analysis = this.aiCalculateTargetValue(art, true);
+        analysis.targetIdx = idx;
+        if (analysis.netValue > bestScore) { bestScore = analysis.netValue; bestPlan = analysis; }
+    });
+
+    // 3) 시장 유물
+    this.fieldArt.forEach((art, idx) => {
+        const analysis = this.aiCalculateTargetValue(art, false);
+        analysis.targetIdx = idx;
+        if (analysis.netValue > bestScore) { bestScore = analysis.netValue; bestPlan = analysis; }
+    });
+
+    return bestPlan;
+};
+
+// 5. [행동 실행] 제작 트랜잭션 (켈트 로직 수정 & 은총 적용 - Fixed)
+Game.prototype.processCraftTransaction = function(ai, plan) {
+    const art = plan.art;
+    const fromReserve = plan.fromReserve;
+    const realCeltCount = ai.artifacts.filter(a => a.type === 'celt').length;
+
+    let requirements = { ...art.cost };
+    let olympusSavedAmount = 0;
+
+    // 올림포스 할인
+    if (plan.discountType) {
+        const olympusLv = this.getArtLevel('olympus'); 
+        const amt = BALANCE_CONFIG.OLYMPUS.DISCOUNT[Math.min(olympusLv, 3)];
+        requirements[plan.discountType] = Math.max(0, requirements[plan.discountType] - amt);
+        olympusSavedAmount = amt;
+    }
+
+    let cardsToPay = [];
+    let hand = [...ai.hand];
+    let isExactMatch = true; // 은총 체크용
+
+    // 1. 자원 지불
+    for (const [reqType, reqVal] of Object.entries(requirements)) {
+        let needed = reqVal;
+        for (let i = hand.length - 1; i >= 0; i--) {
+            if (needed <= 0) break;
+            let c = hand[i];
+            if (c.cat === 'resource' && c.type === reqType) {
+                if (c.val > needed) isExactMatch = false; 
+                needed -= c.val; 
+                cardsToPay.push(c); hand.splice(i, 1); ai.metrics.resConsumed += c.val; 
+            }
+        }
+        requirements[reqType] = Math.max(0, needed);
+    }
+    
+    // 2. 로키 자원 대체
+    for (const [reqType, reqVal] of Object.entries(requirements)) {
+        let needed = reqVal; if (needed <= 0) continue;
+        for (let i = hand.length - 1; i >= 0; i--) {
+            if (needed <= 0) break;
+            let c = hand[i];
+            if (c.cat === 'loki' && c.extra.type === 'res_split' && c.extra.options.some(opt => opt.type === reqType)) {
+                if (4 > needed) isExactMatch = false;
+                needed -= 4; cardsToPay.push(c); hand.splice(i, 1); ai.metrics.resConsumed += 4;
+            }
+        }
+        requirements[reqType] = Math.max(0, needed);
+    }
+    
+    // 3. 켈트 자원 변환
+    const activeCeltLv = this.getArtLevel('celt');
+    const maxSwaps = BALANCE_CONFIG.CELT.SWAP_LIMIT[Math.min(activeCeltLv, 3)];
+    let usedSwaps = 0; let currentTotalSwaps = ai.celtConvertCount;
+    
+    for (const [reqType, reqVal] of Object.entries(requirements)) {
+        let needed = reqVal; if (needed <= 0) continue;
+        if (currentTotalSwaps < maxSwaps) {
+            for (let i = hand.length - 1; i >= 0; i--) {
+                if (needed <= 0 || currentTotalSwaps >= maxSwaps) break;
+                let c = hand[i];
+                if (c.cat === 'resource') {
+                    if (c.val > needed) isExactMatch = false;
+                    needed -= c.val; cardsToPay.push(c); hand.splice(i, 1); usedSwaps++; currentTotalSwaps++; ai.metrics.resConsumed += c.val; 
+                }
+            }
+        }
+        requirements[reqType] = Math.max(0, needed);
+    }
+
+    if (Object.values(requirements).reduce((a,b)=>a+b, 0) > 0) return false;
+
+    const isConvert = realCeltCount >= BALANCE_CONFIG.CELT.LVL_CONVERT;
+    const isFree = realCeltCount >= BALANCE_CONFIG.CELT.LVL_FREE;
+    
+    if (!isFree) {
+         let blessIdx = hand.findIndex(c => (c.cat === 'blessing' && c.type === art.type) || (c.cat === 'loki' && c.extra.type === 'bless_split' && c.extra.tags.includes(art.type)));
+         if (blessIdx === -1 && isConvert) blessIdx = hand.findIndex(c => c.cat === 'blessing' || (c.cat === 'loki' && c.extra.type === 'bless_split'));
+         if (blessIdx !== -1) { cardsToPay.push(hand[blessIdx]); hand.splice(blessIdx, 1); } else return false;
+    }
+
+    if (olympusSavedAmount > 0) ai.metrics.savedRes += olympusSavedAmount;
+    if (usedSwaps > 0) { ai.metrics.celtSwaps += usedSwaps; ai.celtConvertCount += usedSwaps; }
+    ai.hand = hand;
+    cardsToPay.forEach(c => {
+        if(c.cat === 'resource') this.deckRes.discard(c);
+        else if(c.cat === 'blessing') this.deckBless.discard(c);
+        else if(c.cat === 'loki') this.deckLoki.discard(c); 
+    });
+
+    let graceBonus = 0;
+    if (isExactMatch) {
+        if (art.grade === 'Gold') graceBonus = 4;
+        else if (art.grade === 'Silver') graceBonus = 3;
+        else graceBonus = 2; // Bronze
+        ai.metrics.graceCount++;
+        ai.metrics.graceScore += graceBonus;
+    }
+
+    const craftedArt = { ...art, isGrace: isExactMatch, finalScore: art.score + graceBonus, bonus: graceBonus };
+    ai.artifacts.push(craftedArt);
+    ai.score += craftedArt.finalScore;
+
+    const typeCount = ai.artifacts.filter(a => a.type === craftedArt.type).length;
+    if (typeCount === 3) {
+        if (ai.milestones[craftedArt.type] === undefined) ai.milestones[craftedArt.type] = this.craftOrder++;
+        if (ai.lvl3Turn[craftedArt.type] === -1) ai.lvl3Turn[craftedArt.type] = ai.totalTurns;
+    }
+
+    if (fromReserve) ai.reserved.splice(plan.targetIdx, 1);
+    else { this.fieldArt.splice(plan.targetIdx, 1); this.fill('artifact', 7); }
+    
+    const freeCardIdx = cardsToPay.findIndex(c => c.cat === 'loki' && c.extra.type === 'passive_free');
+    if (freeCardIdx !== -1) { 
+        ai.recordLokiUse(cardsToPay[freeCardIdx]); 
+        this.consumeTime(0); 
+    }
+    else this.consumeTime(this.getCost('ART'));
+
+    return true;
+};
+
+// 6. [AI 메인] 턴 실행 함수 (Final Clean Version)
+Game.prototype.aiTurn = function() {
+    const ai = this.cp;
+    // 1. 기본 종료 조건 체크 (시간 다 씀 or 게임 종료 플래그)
+    if (this.isGameEnded || ai.time >= CONFIG.MAX_TIME) return;
+
+    ai.totalTurns++; 
+    
+    // [변경됨] 핸드 체크 로직 삭제 (턴 시작 시점에는 체크하지 않음)
+
+    // 2. 로키 전술 실행
+    const lokiPlayed = this.aiPlayLokiTactics();
+
+    if (!lokiPlayed) {
+        // 3. 전략 수립 (로키를 쓰지 않았을 때만 실행)
+        const bestPlan = this.aiFindBestPlan();
+        
+        if (!bestPlan) { 
+            this.aiEmergencyAction(); 
+        } else {
+            // 태세 전환
+            this.aiAutoSwitchCeltMode(bestPlan);
+            ai.aiTargetIdx = bestPlan.targetIdx;
+
+            // 4. 행동 분기
+            if (bestPlan.action === 'SWAP_ARTIFACT') {
+                const myArt = ai.reserved[bestPlan.reserveIdx];
+                const marketArt = this.fieldArt[bestPlan.marketIdx];
+                ai.reserved[bestPlan.reserveIdx] = marketArt;
+                this.fieldArt[bestPlan.marketIdx] = myArt;
+                ai.hand.splice(bestPlan.handIdx, 1);
+                this.consumeTime(this.getCost('SWAP'));
+            }
+            else if (bestPlan.action === 'CRAFT') {
+                const success = this.processCraftTransaction(ai, bestPlan);
+                if (!success) this.aiActionGather(bestPlan);
+            } 
+            else if (bestPlan.action === 'RESERVE') {
+                if (ai.reserved.length >= 1) {
+                    this.aiActionGather(bestPlan);
+                } else {
+                    const art = this.fieldArt[bestPlan.targetIdx];
+                    if (art) {
+                        ai.reserved.push(art);
+                        this.fieldArt.splice(bestPlan.targetIdx, 1);
+                        this.fill('artifact', 7);
+                        this.consumeTime(this.getCost('RESERVE'));
+                    } else {
+                        this.aiEmergencyAction();
+                    }
+                }
+            }
+            else { 
+                this.aiActionGather(bestPlan);
+            }
+        }
+    }
+
+    // [최종 로직] 턴 종료 단계: 핸드 제한을 맞출 때까지 반복 버리기
+    // 게임 종료 여부와 상관없이, 턴의 끝에는 항상 핸드를 정리해야 통계(Wasted Cards, Hand Value)가 정확함.
+    const finalLimit = this.getCurrentHandLimit();
+    while (ai.getHandCount() > finalLimit) { 
+        this.aiSmartDiscard(ai); 
+    }
+};
+
+// 7. [자원 수집] (Fixed: Celt & Nord Logic)
+Game.prototype.aiActionGather = function(plan) {
+    const ai = this.cp;
+    
+    if (plan.needBless) {
+        let blessIdx = this.fieldBless.findIndex(c => c.type === plan.art.type);
+        const realCeltCount = ai.artifacts.filter(a => a.type === 'celt').length;
+        
+        if (blessIdx === -1 && realCeltCount >= BALANCE_CONFIG.CELT.LVL_CONVERT) {
+            blessIdx = this.fieldBless.findIndex(c => true); 
+        }
+
+        if (blessIdx !== -1) {
+            ai.hand.push(this.fieldBless[blessIdx]);
+            this.fieldBless.splice(blessIdx, 1);
+            this.fill('blessing', 4);
+            this.consumeTime(this.getCost('BLESS'));
+        } else {
+            const grailIdx = ai.hand.findIndex(c => c.cat === 'loki' && c.extra.type === 'active_reset_bless');
+            if (grailIdx !== -1) {
+                this.fieldBless.forEach(c => this.deckBless.discard(c));
+                this.fieldBless = []; this.fill('blessing', 4);
+                const card = ai.hand[grailIdx];
+                ai.hand.splice(grailIdx, 1);
+                ai.recordLokiUse(card); 
+                return;
+            }
+            const c = this.deckBless.draw();
+            if(c) ai.hand.push(c);
+            this.consumeTime(this.getCost('BLESS'));
+        }
+        return;
+    }
+
+    if (this.getArtLevel('nord') > 0 && this.aiTryNordAction(plan.art)) return;
+
+    let neededTypes = [];
+    let myRes = {}; 
+    ai.hand.forEach(c => { if(c.cat==='resource') myRes[c.type] = (myRes[c.type]||0)+c.val; });
+    for(const [t, req] of Object.entries(plan.art.cost)) { if(myRes[t] < req) neededTypes.push(t); }
+
+    let targetIdx = -1;
+    for(let i=0; i<this.fieldRes.length; i++) {
+        if (neededTypes.includes(this.fieldRes[i].type) && this.fieldRes[i].val >= 3) { targetIdx = i; break; }
+    }
+    if(targetIdx === -1) {
+        for(let i=0; i<this.fieldRes.length; i++) {
+            if (neededTypes.includes(this.fieldRes[i].type)) { targetIdx = i; break; }
+        }
+    }
+    if(targetIdx === -1) {
+        for(let i=0; i<this.fieldRes.length; i++) { if (this.fieldRes[i].val >= 6) { targetIdx = i; break; } }
+    }
+
+    if (targetIdx !== -1) {
+        const card = this.fieldRes[targetIdx];
+        ai.hand.push(card);
+        ai.metrics.resAcquired += card.val; 
+        this.fieldRes.splice(targetIdx, 1);
+        this.fill('resource', 6);
+        this.consumeTime(this.getCost('RES'));
+    } else {
+        const c = this.deckRes.draw();
+        if(c) {
+            ai.hand.push(c);
+            ai.metrics.resAcquired += c.val; 
+        }
+        this.consumeTime(this.getCost('RES'));
+    }
+};
+
+// 8. [노르드 특수 액션] (Fixed: Multi-Gather Logic Restored)
+// [Part 3] AI Logic Update: Nord "Perfect Value" (v12.0)
+// - 3장 보너스 로직 (점수화) 적용
+// - 효율성 커트라인 (상대 평가) 적용
+// - 필요 자원 우선권 (가중치 비교) 적용
+
+Game.prototype.aiTryNordAction = function(targetArt) {
+    const ai = this.cp;
+    const nordLv = this.getArtLevel('nord'); 
+    if (nordLv <= 0) return false; 
+
+    // 핸드 제한 돌파 (전략적 과부하 허용)
+    const handLimit = this.getCurrentHandLimit(); 
+    if (ai.getHandCount() >= handLimit + 2) return false;
+
+    const statIdx = Math.min(Math.max(0, nordLv - 1), 2); 
+    const limitSum = BALANCE_CONFIG.NORD.LIMIT_SUM[statIdx];
+    const maxCount = BALANCE_CONFIG.NORD.LIMIT_COUNT[statIdx]; 
+
+    // 0. [비교 기준 마련] 일반 수집(1장)으로 얻을 수 있는 '최고 점수' 계산
+    // 단순히 숫자(val)만 보는게 아니라, '필요함(+5)'까지 고려한 실질 가치를 구함.
+    let maxSingleScore = 0;
+    this.fieldRes.forEach(c => { 
+        let s = c.val;
+        if (targetArt.cost[c.type] > 0) s += 5; // 필요한 자원은 턴 가치(+5) 추가
+        if (s > maxSingleScore) maxSingleScore = s;
+    });
+
+    let indices = this.fieldRes.map((_, i) => i);
+    let bestCombo = null;
+    let bestScore = -999;
+
+    const evaluateCombo = (comboIndices) => {
+        let sumVal = 0;
+        let containsNeeded = false;
+        let neededCount = 0;
+
+        comboIndices.forEach(idx => {
+            const c = this.fieldRes[idx];
+            sumVal += c.val;
+            
+            if (targetArt.cost[c.type] > 0) { 
+                containsNeeded = true; 
+                neededCount++; 
+            }
+        });
+
+        // 1. 물리적 한계 체크
+        if (sumVal > limitSum) return -999;
+
+        // 2. 점수 계산 (사용자 요청 1번: 보너스 로직)
+        let score = sumVal;
+        // 필요한 자원 1개당 +5점 (턴 절약 가치)
+        if (containsNeeded) score += (neededCount * 5); 
+
+        // 3. [상대 평가] (사용자 요청 2번 & 3번 통합 해결)
+        // 내 콤보 점수가 '일반 수집 최고 점수(maxSingleScore)'보다 높지 않다면
+        // 굳이 핸드를 여러 칸 쓰면서 가져올 이유가 없다.
+        // 예: [3,3](6점) vs [5+필요](10점) -> 10점이 높으니 콤보 포기(-999)
+        // 예: [2,2+필요](4+5=9점) vs [7](7점) -> 9점이 높으니 콤보 선택(O)
+        if (score <= maxSingleScore) return -999;
+
+        return score;
+    };
+
+    // 2장 탐색
+    if (maxCount >= 2) {
+        for (let i = 0; i < indices.length; i++) {
+            for (let j = i + 1; j < indices.length; j++) {
+                const combo = [i, j];
+                const score = evaluateCombo(combo);
+                if (score > bestScore) { bestScore = score; bestCombo = combo; }
+            }
+        }
+    }
+
+    // 3장 탐색
+    if (maxCount >= 3) {
+        for (let i = 0; i < indices.length; i++) {
+            for (let j = i + 1; j < indices.length; j++) {
+                for (let k = j + 1; k < indices.length; k++) {
+                    const combo = [i, j, k];
+                    const score = evaluateCombo(combo);
+                    // 3장 수집은 핸드 압박이 있으므로 +3점의 추가 이득이 있어야 함
+                    if (score > bestScore + 3) { bestScore = score; bestCombo = combo; }
+                }
+            }
+        }
+    }
+
+    if (bestCombo && bestScore > 0) {
+        bestCombo.sort((a, b) => b - a); 
+        bestCombo.forEach(idx => {
+            const card = this.fieldRes[idx];
+            ai.hand.push(card);
+            ai.metrics.resAcquired += card.val;
+            this.fieldRes.splice(idx, 1);
+        });
+        
+        this.fill('resource', 6);
+        this.consumeTime(this.getCost('RES')); 
+        return true;
+    }
+
+    return false;
+};
+
+// [Part 3] AI Logic Update: Smart Discard v12.2 (Loki Exclusion Fix)
+// 로키 카드는 핸드 제한(Hand Limit)에 포함되지 않으므로, 버리기 대상에서 제외함.
+
+Game.prototype.aiSmartDiscard = function(ai) {
+    const bestPlan = this.aiFindBestPlan();
+    const targetArt = bestPlan ? bestPlan.art : null;
+    
+    let myRes = {}; 
+    ai.hand.forEach(c => { 
+        if(c.cat==='resource') myRes[c.type] = (myRes[c.type]||0)+c.val; 
+    });
+
+    let myBlessings = {};
+    ai.hand.forEach(c => {
+        if(c.cat === 'blessing') myBlessings[c.type] = (myBlessings[c.type]||0) + 1;
+    });
+
+    let worstIdx = -1; 
+    let minScore = 99999;
+
+    ai.hand.forEach((c, i) => {
+        // ★ 핵심 수정: 로키 카드는 핸드 제한에 영향이 없으므로 버리기 후보에서 제외
+        if (c.cat === 'loki') return; 
+
+        let score = 0;
+
+        if (c.cat === 'resource') {
+            score = c.val; // 기본 점수
+            
+            if (targetArt && targetArt.cost[c.type] > 0) {
+                // Critical Check: 이 카드를 뺐을 때 목표 달성이 불가능해지면 보호
+                let currentTotal = myRes[c.type] || 0;
+                let needed = targetArt.cost[c.type];
+                
+                if ((currentTotal - c.val) < needed) {
+                    score += 50; // 절대 보호
+                }
+            }
+            // 고가치 자원 보호 (6,7)
+            if (c.val >= 6) score += 10;
+        } 
+        else if (c.cat === 'blessing') {
+            score = 5; 
+            if (targetArt && c.type === targetArt.type) {
+                // 중복 축복 처리
+                if (myBlessings[c.type] > 1) {
+                    myBlessings[c.type]--; 
+                } else {
+                    score += 50; // 마지막 1장은 보호
+                }
+            }
+        } 
+
+        if (score < minScore) {
+            minScore = score;
+            worstIdx = i;
+        }
+    });
+
+    if (worstIdx !== -1) {
+        const c = ai.hand[worstIdx];
+        ai.hand.splice(worstIdx, 1);
+        if (c.cat === 'resource') this.deckRes.discard(c);
+        else if (c.cat === 'blessing') this.deckBless.discard(c);
+        // 로키 discard 로직 삭제 (버려지지 않으므로)
+        
+        ai.metrics.wastedCards++;
+    }
+};
+
+Game.prototype.aiEmergencyAction = function() {
+    const c = this.deckRes.draw();
+    if(c) this.cp.hand.push(c);
+    this.consumeTime(this.getCost('RES'));
+};
+
+
+Game.prototype.aiEmergencyAction = function() {
+    const c = this.deckRes.draw();
+    if(c) this.cp.hand.push(c);
+    this.consumeTime(this.getCost('RES'));
+};
+
+
+
+// ==================================================================================
+// [Part 4] Simulation Manager (Final v9.8: Tier Depth & Top 5 UI)
+// ==================================================================================
+
+class SimulationManager {
+    constructor() {
+        this.isRunning = false;
+        this.stats = this.getEmptyStats();
+        this.csvData = []; 
+    }
+
+    getEmptyStats() {
+        return {
+            totalGames: 0,
+            wins: [0, 0, 0, 0, 0], 
+            draws: 0,
+            totalScore: 0,
+            days: 0,
+            
+            mythStats: {
+                olympus: { rankSum: 0, count: 0, t2Win: 0, t3Win: 0 },
+                egypt: { rankSum: 0, count: 0, t2Win: 0, t3Win: 0 },
+                nord: { rankSum: 0, count: 0, t2Win: 0, t3Win: 0 },
+                celt: { rankSum: 0, count: 0, t2Win: 0, t3Win: 0 },
+                mix: { rankSum: 0, count: 0, t2Win: 0, t3Win: 0 }
+            },
+
+            topScores: [], 
+            winnerRecords: [], 
+
+            rankStats: {
+                lokiCount: [0, 0, 0, 0], 
+                artScoreAvg: [0, 0, 0, 0], 
+                count: [0, 0, 0, 0]      
+            },
+            totalGap1vs2: 0,
+
+            // 경제
+            totalSaved: 0, totalWasted: 0, totalSwaps: 0,
+            totalResAcquired: 0, totalResConsumed: 0,
+            
+            // [Fix] UI가 참조할 수 있도록 '플레이어별 배열'로 초기화해야 합니다.
+            graceCounts: [0, 0, 0, 0, 0], // Index 1~4 사용
+            totalGraceScore: 0,
+
+            mythDailyStats: {
+                olympus: { sum: [0,0,0,0,0], count: 0 },
+                egypt: { sum: [0,0,0,0,0], count: 0 },
+                nord: { sum: [0,0,0,0,0], count: 0 },
+                celt: { sum: [0,0,0,0,0], count: 0 }
+            }
+        };
+    }
+
+    runOneGame(mythAssignments, gameId) {
+        const game = new Game();
+        game.init(mythAssignments);
+
+        let safetyCount = 0;
+        while (!game.isGameEnded && safetyCount < 1000) {
+            game.aiTurn();
+            safetyCount++;
+        }
+
+        if (game.isGameEnded) {
+            this.collectData(game, gameId);
+        }
+    }
+
+    async startSimulation() {
+        if (this.isRunning) return;
+        applyUserBalance();
+        
+        // [Fix] CSV 헤더에 은총(Grace) 관련 컬럼 2개 추가 (누락 방지)
+        if (this.csvData.length === 0) {
+            this.csvData = ["GameID,Day,PlayerID,MainMyth,Rank,Score,OlympusLv,EgyptLv,NordLv,CeltLv,TotalTurns,EngineTurn,HandValue,EffRatio,UsedLoki,GraceCount,GraceScore"];
+        }
+        
+        const countInput = document.getElementById('simCount');
+        const count = parseInt(countInput.value);
+        const myths = [
+            document.getElementById('p1Myth').value,
+            document.getElementById('p2Myth').value,
+            document.getElementById('p3Myth').value,
+            document.getElementById('p4Myth').value
+        ];
+
+        this.isRunning = true;
+        let startGameId = this.stats.totalGames + 1;
+        
+        this.updateLog(`[System] ${count}회 시뮬레이션 시작 (v10.5 Grace Added)`);
+        
+        let chunkSize = 100;
+        if (count >= 5000) chunkSize = 500;
+        
+        for (let i = 0; i < count; i += chunkSize) {
+            if (!this.isRunning) break;
+            const limit = Math.min(i + chunkSize, count);
+            for (let j = i; j < limit; j++) { 
+                this.runOneGame(myths, startGameId++); 
+            }
+            const progress = Math.round(((i + chunkSize) / count) * 100);
+            document.getElementById('progressBar').style.width = `${progress}%`;
+            await new Promise(r => setTimeout(r, 0));
+        }
+
+        this.renderStats();
+        this.isRunning = false;
+        document.getElementById('progressBar').style.width = `0%`;
+    }
+
+    stopSimulation() {
+        this.isRunning = false;
+        this.updateLog("[System] 중지됨.");
+    }
+
+    resetStats() {
+        this.stats = this.getEmptyStats();
+        this.csvData = [];
+        this.updateLog("[System] 초기화 완료.");
+        document.getElementById('mainStats').innerHTML = "";
+        document.getElementById('detailStats').innerHTML = "";
+    }
+
+    collectData(game, gameId) {
+        let rankedPlayers = [...game.players];
+        rankedPlayers.sort((a, b) => {
+            if (b.score !== a.score) return b.score - a.score; 
+            return b.artifacts.length - a.artifacts.length;    
+        });
+
+        const gap = rankedPlayers[0].score - rankedPlayers[1].score;
+        this.stats.totalGap1vs2 += gap;
+        
+        const winner = rankedPlayers[0];
+        const isDraw = rankedPlayers[1].score === winner.score && rankedPlayers[1].artifacts.length === winner.artifacts.length;
+
+        rankedPlayers.forEach((p, index) => {
+            let rank = index + 1;
+            if (index > 0) {
+                const prev = rankedPlayers[index - 1];
+                if (p.score === prev.score && p.artifacts.length === prev.artifacts.length) {
+                    rank = prev.rank;
+                }
+            }
+            p.rank = rank;
+
+            const counts = { olympus: 0, egypt: 0, nord: 0, celt: 0 };
+            const grades = { Gold: 0, Silver: 0, Bronze: 0 };
+            p.artifacts.forEach(a => { 
+                if(counts[a.type] !== undefined) counts[a.type]++; 
+                if(grades[a.grade] !== undefined) grades[a.grade]++;
+            });
+            
+            let mainMyth = 'mix';
+            let maxVal = 0;
+            for(const c of Object.values(counts)) { if (c > maxVal) maxVal = c; }
+            const candidates = Object.keys(counts).filter(m => counts[m] === maxVal);
+            
+            if (candidates.length === 1) {
+                mainMyth = candidates[0];
+            } else {
+                candidates.sort((a, b) => { 
+                    const orderA = p.milestones[a] !== undefined ? p.milestones[a] : 99999;
+                    const orderB = p.milestones[b] !== undefined ? p.milestones[b] : 99999;
+                    return orderA - orderB;
+                });
+                mainMyth = (p.milestones[candidates[0]] !== undefined) ? candidates[0] : 'mix';
+            }
+
+            this.updateTopScores(p, mainMyth, counts, grades);
+
+            if (this.stats.mythStats[mainMyth]) {
+                this.stats.mythStats[mainMyth].rankSum += rank;
+                this.stats.mythStats[mainMyth].count++;
+            }
+
+            if (index < 4) {
+                this.stats.rankStats.lokiCount[index] += p.metrics.lokiUsed;
+                const artCount = p.artifacts.length;
+                let avgScore = 0;
+                if (artCount > 0) {
+                    const artScoreSum = p.artifacts.reduce((sum, a) => sum + a.score, 0); 
+                    avgScore = artScoreSum / artCount;
+                }
+                this.stats.rankStats.artScoreAvg[index] += avgScore;
+                this.stats.rankStats.count[index]++;
+            }
+
+            if (mainMyth !== 'mix' && this.stats.mythDailyStats[mainMyth]) {
+                this.stats.mythDailyStats[mainMyth].count++;
+                let filledDaily = [...p.dailyScore];
+                for(let d=0; d<5; d++) {
+                    if (filledDaily[d] === -1) {
+                        if (d === 0) filledDaily[d] = p.score; 
+                        else filledDaily[d] = filledDaily[d-1];
+                    }
+                    this.stats.mythDailyStats[mainMyth].sum[d] += filledDaily[d];
+                }
+            }
+
+            this.stats.totalSaved += p.metrics.savedRes;
+            this.stats.totalWasted += p.metrics.wastedCards;
+            this.stats.totalSwaps += p.metrics.celtSwaps;
+            this.stats.totalResAcquired += p.metrics.resAcquired;
+            this.stats.totalResConsumed += p.metrics.resConsumed;
+            
+            // [Fix] 전체 합산이 아닌 '플레이어 ID별' 배열에 저장해야 UI가 읽을 수 있습니다.
+            if (this.stats.graceCounts[p.id] !== undefined) {
+                this.stats.graceCounts[p.id] += p.metrics.graceCount;
+            }
+            this.stats.totalGraceScore += p.metrics.graceScore;
+
+            const engineTurn = (mainMyth !== 'mix') ? p.lvl3Turn[mainMyth] : -1;
+            let handValue = 0; p.hand.forEach(c => { if(c.cat === 'resource') handValue += c.val; });
+            const effRatio = p.metrics.resAcquired > 0 ? (p.metrics.resConsumed / p.metrics.resAcquired).toFixed(3) : 0;
+            const lokiStr = p.usedLokiIds.length > 0 ? p.usedLokiIds.join('|') : "None";
+            const h = p.history[p.history.length - 1]; 
+            
+            if (h) {
+                 this.csvData.push(`${gameId},${h.day},P${p.id},${mainMyth},${p.rank},${h.score},${h.olympus},${h.egypt},${h.nord},${h.celt},${p.totalTurns},${engineTurn},${handValue},${effRatio},${lokiStr},${p.metrics.graceCount},${p.metrics.graceScore}`);
+            }
+        });
+
+        this.stats.totalGames++;
+        if (isDraw) this.stats.draws++;
+        else {
+            this.stats.wins[winner.id]++;
+            const wCounts = { olympus:0, egypt:0, nord:0, celt:0 };
+            winner.artifacts.forEach(a => wCounts[a.type]++);
+            const wMax = Math.max(...Object.values(wCounts));
+            
+            let winnerMyth = 'mix';
+            const leaders = Object.keys(wCounts).filter(k => wCounts[k] === wMax);
+            if (leaders.length === 1) winnerMyth = leaders[0];
+            else {
+                leaders.sort((a,b) => (winner.milestones[a]||999) - (winner.milestones[b]||999));
+                if((winner.milestones[leaders[0]]||999) < 999) winnerMyth = leaders[0];
+            }
+            
+            this.stats.winnerRecords.push({ score: winner.score, myth: winnerMyth });
+            
+            if (this.stats.mythStats[winnerMyth]) {
+                if (wMax === 2) this.stats.mythStats[winnerMyth].t2Win++;
+                else if (wMax >= 3) this.stats.mythStats[winnerMyth].t3Win++;
+            }
+        }
+
+        this.stats.days += game.day;
+        let gameTotalScore = 0;
+        game.players.forEach(p => gameTotalScore += p.score);
+        this.stats.totalScore += (gameTotalScore / 4);
+    }
+
+    updateTopScores(p, myth, counts, grades) {
+        // 데이터 객체 생성
+        const record = {
+            score: p.score,
+            myth: myth,
+            counts: counts, // {olympus: 2, egypt: 1 ...}
+            grades: grades  // {Gold: 1, Silver: 2 ...}
+        };
+
+        // Top 5 리스트 관리
+        this.stats.topScores.push(record);
+        this.stats.topScores.sort((a, b) => b.score - a.score);
+        if (this.stats.topScores.length > 5) {
+            this.stats.topScores = this.stats.topScores.slice(0, 5);
+        }
+    }
+
+    updateLog(msg) {
+        const log = document.getElementById('simLog');
+        if(log) log.innerText = msg + "\n" + log.innerText;
+    }
+    
+    downloadRawData() {
+        if (this.csvData.length <= 1) { alert("데이터 없음"); return; }
+        const csvContent = this.csvData.join("\n");
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = `divine_forge_v9_8.csv`;
+        link.style.display = 'none';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+
+    
+}
+/*
+ * [v10.2 Update Log: Logic & UI Sync]
+ *
+ * 1. 밸런스 산출 공식(Power Score) 리밸런싱
+ * - 문제점 수정: 기존 로직에서 '안정적 2위 전략(순위 방어)'이 지나치게 저평가되는 현상 보정.
+ * - 변경 사항:
+ * a) 승률 가중치 조정 (2.0 -> 1.5): 승리 중요도 유지하되, 독점 가중치 소폭 하향.
+ * b) 순위 가중치 상향 (12 -> 20): 평균 순위 2.0 달성 시 유의미한 점수(40점) 확보하도록 변경.
+ * c) 노이즈 필터링: 시뮬레이션 1,000회 미만 시 Elite(고점) 가중치 0.5배 적용 (데이터 왜곡 방지).
+ *
+ * 2. UI/가이드 텍스트 동기화
+ * - 점수 스케일 확장(Max ~130점)에 맞춰 밸런스 붕괴(Gap) 판독 기준 재설정 (20/40).
+ * - 사용자 가이드(<details>) 내 공식 설명을 v10.2 로직으로 갱신.
+ */
+// [SimulationManager.prototype.renderStats 최종 확정본 (v11.3: Robust Standard)]
+
+SimulationManager.prototype.renderStats = function() {
+        const total = this.stats.totalGames;
+        if (total === 0) return;
+
+        const p = 0.25; 
+        const stdError = Math.sqrt((p * (1 - p)) / total);
+
+        let eliteCounts = { olympus:0, egypt:0, nord:0, celt:0, mix:0 };
+        if (this.stats.winnerRecords.length > 0) {
+            this.stats.winnerRecords.sort((a, b) => b.score - a.score);
+            const cutoffIndex = Math.floor(this.stats.winnerRecords.length * 0.05);
+            const eliteSlice = this.stats.winnerRecords.slice(0, Math.max(1, cutoffIndex));
+            eliteSlice.forEach(r => { 
+                if(eliteCounts[r.myth] !== undefined) eliteCounts[r.myth]++; 
+                else eliteCounts.mix++; 
+            });
+        }
+        const getElitePct = (myth) => this.stats.winnerRecords.length > 0 ? ((eliteCounts[myth] / Math.max(1, Math.floor(this.stats.winnerRecords.length * 0.05))) * 100).toFixed(1) : '0.0';
+
+        const mythList = ['olympus', 'egypt', 'nord', 'celt', 'mix'];
+        const mythMeta = mythList.map(key => {
+            const data = this.stats.mythStats[key];
+            const avgRank = data.count > 0 ? (data.rankSum / data.count).toFixed(2) : '4.00';
+            const winRateVal = total > 0 ? (data.t2Win + data.t3Win) / total : 0;
+            const winRatePct = (winRateVal * 100).toFixed(1);
+            const zScore = (winRateVal - p) / stdError;
+            const sigmaStr = (zScore > 0 ? "+" : "") + zScore.toFixed(2) + "σ";
+            let tierColor = '#7f8c8d'; 
+            let tierLabel = 'Balanced';
+            if (zScore >= 5.0) { tierColor = '#e74c3c'; tierLabel = 'OP (Tier 0)'; }
+            else if (zScore >= 3.0) { tierColor = '#e67e22'; tierLabel = 'Strong (Tier 1)'; }
+            else if (zScore <= -5.0) { tierColor = '#2c3e50'; tierLabel = 'Under (Tier 4)'; }
+            else if (zScore <= -3.0) { tierColor = '#34495e'; tierLabel = 'Weak (Tier 3)'; }
+            const eliteWinRate = parseFloat(getElitePct(key));
+            let baseScore = (winRateVal / 0.25) * 75;
+            let rankScore = (4 - parseFloat(avgRank)) * 25;
+            const eliteWeight = total >= 1000 ? 0.25 : 0.125;
+            let eliteBonus = eliteWinRate * eliteWeight;
+            let finalScore = baseScore + rankScore + eliteBonus;
+            const powerScore = finalScore.toFixed(0);
+            return {
+                id: key, name: {olympus:'올림포스', egypt:'이집트', nord:'노르드', celt:'켈트', mix:'혼합'}[key],
+                color: {olympus:'var(--c-olympus)', egypt:'var(--c-egypt)', nord:'var(--c-nord)', celt:'var(--c-celt)', mix:'#95a5a6'}[key],
+                avgRank, winRatePct, eliteWinRate, powerScore, sigmaStr, tierColor, tierLabel, zScore,
+                t2Rate: total > 0 ? ((data.t2Win/total)*100).toFixed(1) : '0.0',
+                t3Rate: total > 0 ? ((data.t3Win/total)*100).toFixed(1) : '0.0', count: data.count
+            };
+        });
+        mythMeta.sort((a, b) => parseFloat(b.powerScore) - parseFloat(a.powerScore));
+        
+        const drawBar = (val, max, color) => `<div style="flex:1; height:6px; background:#333; border-radius:3px; overflow:hidden; margin:0 5px;"><div style="width:${Math.min(100, (val/max)*100)}%; height:100%; background:${color};"></div></div>`;
+        const pct = (val) => ((val / total) * 100).toFixed(1);
+        const effVal = this.stats.totalResAcquired > 0 ? ((this.stats.totalResConsumed / this.stats.totalResAcquired) * 100).toFixed(1) : 0;
+        const effColor = effVal > 85 ? '#2ecc71' : (effVal > 70 ? '#f1c40f' : '#e74c3c');
+        const avgGap = (this.stats.totalGap1vs2 / total).toFixed(1);
+
+        let mythRows = '';
+        mythMeta.forEach(m => {
+            const isFocus = Math.abs(m.zScore) >= 3.0 ? `border: 1px solid ${m.color}; background: rgba(255,255,255,0.05);` : `border-bottom: 1px solid #333;`;
+            mythRows += `
+                <div style="display:grid; grid-template-columns: 1.5fr 1fr 1.2fr 1fr 0.8fr; padding:10px 8px; align-items:center; ${isFocus} border-radius:4px; margin-bottom:6px;">
+                    <div style="color:${m.color}; font-weight:bold; display:flex; flex-direction:column;">
+                        <span style="font-size:14px;">${m.name}</span><span style="font-size:10px; color:${m.tierColor}; opacity:0.9;">${m.tierLabel}</span>
+                    </div>
+                    <div style="text-align:center; display:flex; flex-direction:column; align-items:center;">
+                        <div style="font-weight:bold; color:#ecf0f1; font-size:13px;">${m.winRatePct}%</div>
+                        <div style="font-size:10px; color:${m.tierColor}; font-weight:bold;">${m.sigmaStr}</div>
+                        <div style="font-size:9px; color:#888; margin-top:2px;">${m.t2Rate}% / ${m.t3Rate}%</div>
+                    </div>
+                    <div style="display:flex; flex-direction:column; justify-content:center; padding:0 5px;">
+                        <div style="display:flex; align-items:center; font-size:11px; color:#aaa;"><span>Rk</span>${drawBar(4 - parseFloat(m.avgRank), 3, m.color)}<span style="color:#fff;">${m.avgRank}</span></div>
+                    </div>
+                    <div style="text-align:center; font-size:12px;"><div title="Elite Win Rate" style="color:#f1c40f;">${m.eliteWinRate}%</div><div style="font-size:9px; color:#666;">Top 5%</div></div>
+                    <div style="text-align:center;"><div style="font-size:15px; font-weight:bold; color:#fff;">${m.powerScore}</div><div style="font-size:9px; color:#666;">Score</div></div>
+                </div>`;
+        });
+
+        let dailyRows = '';
+        mythMeta.forEach(meta => {
+            if (meta.id === 'mix') return;
+            const dData = this.stats.mythDailyStats[meta.id];
+            let tds = '';
+            if (dData && dData.count > 0) {
+                for(let d=0; d<5; d++) {
+                    const avg = (dData.sum[d] / dData.count).toFixed(1);
+                    const prev = d > 0 ? (dData.sum[d-1] / dData.count) : 0;
+                    const diff = (avg - prev).toFixed(1);
+                    const diffStr = d > 0 ? `<span style="font-size:9px; color:${diff > 20 ? '#e74c3c' : '#7f8c8d'}; margin-left:2px;">(+${diff})</span>` : '';
+                    tds += `<td><span style="font-weight:bold; color:#ecf0f1;">${avg}</span>${diffStr}</td>`;
+                }
+            } else { tds = `<td colspan="5" style="color:#555; font-size:11px;">데이터 부족 (표본 과소)</td>`; }
+            dailyRows += `<tr style="border-bottom:1px solid #333;"><td style="text-align:left; padding:8px; font-weight:bold; color:${meta.color}; border-right:1px solid #333;">${meta.name} <span style="font-size:9px; color:#666;">(#${4 - parseFloat(meta.avgRank) + 1}위)</span></td>${tds}</tr>`;
+        });
+        const dailyTableHTML = `<div class="panel full-width"><div class="panel-header" style="color:#e67e22;">📅 신화별 성장 곡선 (일일 평균 점수)</div><table class="mini-table" style="text-align:center; font-size:12px; width:100%; border-collapse:collapse;"><thead><tr style="background:#252525; color:#aaa; font-size:11px;"><th style="text-align:left; padding:8px;">Main Myth</th><th style="padding:6px;">Day 1</th><th style="padding:6px;">Day 2</th><th style="padding:6px;">Day 3</th><th style="padding:6px;">Day 4</th><th style="padding:6px;">Day 5 (Final)</th></tr></thead><tbody>${dailyRows}</tbody></table></div>`;
+
+        let top5HTML = `<table class="mini-table" style="text-align:center; font-size:11px;"><thead><tr><th>#</th><th>점수</th><th>주력</th><th>덱 구성</th><th>등급</th></tr></thead><tbody>`;
+        const kNames = {olympus:'올림', egypt:'이집', nord:'노르', celt:'켈트', mix:'혼합'};
+        this.stats.topScores.forEach((rec, i) => {
+             const mColor = {olympus:'var(--c-olympus)', egypt:'var(--c-egypt)', nord:'var(--c-nord)', celt:'var(--c-celt)', mix:'#aaa'}[rec.myth];
+             let deckStr = []; for(const [key, val] of Object.entries(rec.counts)) { if(val > 0) deckStr.push(`${kNames[key]||key} ${val}`); }
+             let gradeStr = [];
+             if(rec.grades.Gold > 0) gradeStr.push(`<span style="color:#f1c40f">🥇${rec.grades.Gold}</span>`);
+             if(rec.grades.Silver > 0) gradeStr.push(`<span style="color:#bdc3c7">🥈${rec.grades.Silver}</span>`);
+             if(rec.grades.Bronze > 0) gradeStr.push(`<span style="color:#cd7f32">🥉${rec.grades.Bronze}</span>`);
+             top5HTML += `<tr><td>${i+1}</td><td style="color:#e67e22; font-weight:bold;">${rec.score}</td><td style="color:${mColor}; font-weight:bold;">${kNames[rec.myth]||rec.myth}</td><td style="color:#ddd;">${deckStr.join(', ')}</td><td>${gradeStr.length>0?gradeStr.join(' '):'-'}</td></tr>`;
+        });
+        top5HTML += `</tbody></table>`;
+
+        const html = `
+            <div style="margin-bottom: 15px; display:flex; justify-content:space-between; align-items:end;">
+                <div><h2 style="margin:0; font-size:20px;">📊 밸런스 분석 (N=${total})</h2></div>
+                <button onclick="simManager.downloadRawData()" class="btn-primary" style="padding:4px 8px; font-size:11px;">📥 Raw CSV</button>
+            </div>
+
+            <details style="background:#2c3e50; border:1px solid #34495e; border-radius:4px; padding:8px; margin-bottom:15px; cursor:pointer;">
+                 <summary style="font-weight:bold; color:#f1c40f; outline:none;">❓ 은총(Grace) 및 밸런스 점수 설명 (클릭)</summary>
+                 <div style="margin-top:10px; font-size:12px; color:#ecf0f1; line-height:1.6; border-top:1px dashed #555; padding-top:8px;">
+                    <div style="margin-bottom:8px;">
+                        <b style="color:#e74c3c;">✨ 은총(Grace) 시스템:</b><br>
+                        유물 제작 시 자원을 <span style="color:#f1c40f;">정확히(Exact Match)</span> 지불하면 추가 점수 획득.<br>
+                        (등급별 보너스: Bronze +2 / Silver +3 / Gold +4)
+                    </div>
+                    <div style="border-top:1px dashed #555; padding-top:6px;">
+                        <b style="color:#3498db;">⚖️ 티어(Tier) 및 Score 기준 (표준편차 σ):</b><br>
+                        - <span style="color:#e74c3c; font-weight:bold;">Tier 0 (OP)</span>: +5.0σ 이상 (밸런스 붕괴 수준의 강력함)<br>
+                        - <span style="color:#e67e22; font-weight:bold;">Tier 1 (Strong)</span>: +3.0σ 이상 (확실한 우위)<br>
+                        - <span style="color:#7f8c8d; font-weight:bold;">Balanced</span>: ±3.0σ 이내 (통계적 오차 범위 내 정상)<br>
+                        - <span style="color:#2c3e50; font-weight:bold;">Under/Weak</span>: -3.0σ 이하 (상향 조정 필요)<br>
+                        <span style="color:#aaa; font-size:11px;">* <b>Power Score</b>: (승률 / 25% × 75) + (순위점수 × 25) +  [상위 5% 승률 x 가중치]을 종합한 전투력 지표입니다. 가중치:  (1,000회 이상): 0.25(25% 반영)데이터 부족 (1,000회 미만): 0.125 (12.5% 반영)</span>
+                    </div>
+                 </div>
+            </details>
+
+            <div class="dashboard-grid">
+                <div class="panel full-width">
+                    <div class="panel-header" style="color:#3498db;">⚡ 신화별 성능 분석 (Ratio v2)</div>
+                     <div style="display:grid; grid-template-columns: 1.5fr 1fr 1.2fr 1fr 0.8fr; padding:0 8px 5px; font-size:10px; color:#666; border-bottom:1px solid #333;">
+                        <div>신화 (Tier)</div><div>승률 (σ / Depth)</div><div>평균 순위</div><div>고점(Elite)</div><div>Score</div>
+                    </div>
+                    ${mythRows}
+                </div>
+                ${dailyTableHTML}
+                <div class="panel full-width" style="background:#222;">
+                     <div class="panel-header" style="color:#f39c12;">🏆 Top 5 고득점 덱 분석</div>
+                     ${top5HTML}
+                </div>
+                <div class="panel half-width">
+                    <div class="panel-header">📈 플레이어 승률</div>
+                    ${['#e74c3c', '#3498db', '#2ecc71', '#f1c40f'].map((c, i) => `<div class="stat-row"><span class="stat-label">P${i+1}</span><div class="bar-wrapper"><div class="bar-fill" style="width:${pct(this.stats.wins[i+1])}%; background:${c};"></div></div><span class="stat-value" style="width:40px;">${pct(this.stats.wins[i+1])}%</span></div>`).join('')}
+                    <div class="stat-row" style="margin-top:5px;"><span class="stat-label">Draw</span><span class="stat-value">${pct(this.stats.draws)}%</span></div>
+                </div>
+                <div class="panel half-width">
+                    <div class="panel-header">💰 경제 및 은총 통계</div>
+                    <div style="text-align:center; margin-bottom:10px;">
+                        <div style="font-size:11px; color:#aaa;">자원 소모 효율</div>
+                        <div style="font-size:24px; font-weight:bold; color:${effColor};">${effVal}%</div>
+                    </div>
+                    <div style="border-top:1px dashed #444; padding-top:5px; margin-top:5px;">
+                        <div style="font-size:11px; color:#e74c3c; font-weight:bold; margin-bottom:4px;">✨ 플레이어별 평균 은총 획득</div>
+                        ${['#e74c3c', '#3498db', '#2ecc71', '#f1c40f'].map((c, i) => {
+                            const pGrace = (this.stats.graceCounts[i+1] / total).toFixed(1);
+                            return `<div class="stat-row"><span class="stat-label" style="color:${c};">P${i+1}</span><span class="stat-value">${pGrace}회</span></div>`;
+                        }).join('')}
+                    </div>
+                    <div class="stat-row" style="margin-top:8px;"><span class="stat-label">평균 게임 길이</span><span class="stat-value">${(this.stats.days / total).toFixed(1)} 일</span></div>
+                    <div class="stat-row"><span class="stat-label">전체 평균 점수</span><span class="stat-value">${(this.stats.totalScore / total).toFixed(1)} 점</span></div>
+                    <div class="stat-row"><span class="stat-label">1-2위 평균 격차</span><span class="stat-value">${avgGap} 점</span></div>
+                </div>
+                <div class="panel full-width">
+                    <div class="panel-header">🛠️ 특수 능력 활용 (평균)</div>
+                    <div style="display:grid; grid-template-columns: repeat(4, 1fr); gap:10px; text-align:center;">
+                        <div><div style="color:var(--c-olympus); font-weight:bold;">올림포스</div><div style="font-size:16px;">${(this.stats.totalSaved / total).toFixed(1)}</div><div style="font-size:10px; color:#aaa;">자원 절약</div></div>
+                        <div><div style="color:var(--c-egypt); font-weight:bold;">이집트</div><div style="font-size:16px;">-</div><div style="font-size:10px; color:#aaa;">(패시브)</div></div>
+                        <div><div style="color:var(--c-nord); font-weight:bold;">노르드</div><div style="font-size:16px;">${(this.stats.totalWasted / total).toFixed(1)}</div><div style="font-size:10px; color:#aaa;">버려진 카드</div></div>
+                        <div><div style="color:var(--c-celt); font-weight:bold;">켈트</div><div style="font-size:16px;">${(this.stats.totalSwaps / total).toFixed(1)}</div><div style="font-size:10px; color:#aaa;">변환 횟수</div></div>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        document.getElementById('mainStats').style.display = 'none';
+        document.getElementById('detailStats').innerHTML = html;
+    }
+/*
+ ==================================================================================
+ [Patch Note: v9.1 Fixed - Celt Logic & UI Sync]
+ ==================================================================================
+
+ 1. [UI] 사용자 안내 문구 수정 (HTML)
+    - 대상: 켈트 변환(Convert) 및 면제(Free) 레벨 입력 필드
+    - 변경: "쉼표 구분(예: 2,3)" → "최소 레벨(예: 2)" 로 Placeholder 및 가이드 텍스트 변경.
+    - 이유: 사용자가 단일 숫자를 입력하도록 유도하여 설정 혼란 방지.
+
+ 2. [Config] 설정 적용 로직 변경 (applyUserBalance)
+    - 대상: BALANCE_CONFIG.CELT.LVL_CONVERT, LVL_FREE
+    - 변경: 배열 전체 저장 방식 → 첫 번째 입력값(index 0)을 Threshold(정수)로 저장.
+    - 코드: const convertArr = ...; BALANCE_CONFIG.CELT.LVL_CONVERT = convertArr[0];
+
+ 3. [Core] 핵심 엔진 로직 변경 (Threshold 적용)
+    - 대상: 
+      a) Game.prototype.aiCalculateTargetValue (가치 판단)
+      b) Game.prototype.processCraftTransaction (제작 실행)
+      c) Game.prototype.aiActionGather (자원 수집)
+    - 변경: .includes(count) → (count >= CONFIG_VAL)
+    - 효과: 켈트 유물이 설정된 레벨(예: 3)을 초과하여 4개, 5개가 되어도
+           변환 및 면제 능력이 비활성화되지 않고 지속적으로 유지됨.
+           ('면제'가 '변환'보다 상위 개념이므로 우선순위 로직에 따라 충돌 없음)
+
+ 작성자: Divine Forge Main Developer
+ ==================================================================================
+*/
+const simManager = new SimulationManager();
+</script>
+</body>
+</html>
